@@ -1,0 +1,14 @@
+name: animate
+channels:
+- anaconda
+- defaults
+- pytorch
+dependencies:
+- tensorflow=1.11.0
+- torchvision=0.2.1
+- python=3.6
+- pytorch=0.4
+- pip:
+  - tensorboardX
+  - tqdm
+  - pylint
