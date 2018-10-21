@@ -14,7 +14,7 @@ class AnimeDataset(BaseDataset):
 
     def initialize(self, opt):
         self.opt = opt
-        self.images = [f for f in Path(opt.dataroot).iterdir() if f.with_suffix(".jpg")]
+        self.images = [f for f in Path(opt.dataroot).iterdir() if f.suffix == ".jpg"]
         self.latent_size = opt.latent_size
         self.transforms = T.Compose([
             T.Resize(opt.load_size),
@@ -24,7 +24,7 @@ class AnimeDataset(BaseDataset):
         ])
 
     def __getitem__(self, index):
-        latent = torch.from_numpy(np.random.uniform(-1, 1, self.latent_size))
+        latent = torch.from_numpy(np.random.uniform(-1, 1, self.latent_size).astype(np.float32))
 
         if not self.opt.isTrain:
             return {"latent": latent}

@@ -20,10 +20,13 @@ def test_anime_dataset():
     assert torch.is_tensor(demo_latent)
     assert demo_latent.shape == torch.Tensor(demo_opt.latent_size).shape
     assert demo_latent.min() >= -1 and demo_latent.max() <= 1
+    # assert demo_latent.type() == torch.ones(1, dtype=torch.float32).type()
+    assert isinstance(demo_latent, torch.FloatTensor)
 
     assert torch.is_tensor(demo_image)
     assert demo_image.shape == torch.Tensor(3, demo_opt.crop_size, demo_opt.crop_size).shape
     assert demo_image.min() >= -1 and demo_image.max() <= 1
+    assert isinstance(demo_image, torch.FloatTensor)
 
     assert isinstance(res["path"], str)
 
