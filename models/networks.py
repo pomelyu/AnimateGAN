@@ -7,7 +7,7 @@ class BasicG(nn.Module):
 
         self.model = nn.Sequential(
             # 1 x 1 => 4 x 4
-            DeConvBlock(input_nc, ngf*8, scale_factor=4, kernel_size=5, stride=1, padding=2, use_bias=use_bias),
+            DeConvBlock(input_nc, ngf*8, scale_factor=4, use_bias=use_bias),
             # 4 x 4 => 8 x 8
             DeConvBlock(ngf*8, ngf*4, use_bias=use_bias),
             # 8 x 8 => 16 x 16
@@ -16,8 +16,8 @@ class BasicG(nn.Module):
             DeConvBlock(ngf*2, ngf*1, use_bias=use_bias),
             # 32 x 32 => 96 x 96
             Interpolate(scale_factor=3),
-            nn.ReflectionPad2d(2),
-            nn.Conv2d(ngf*1, output_nc, kernel_size=5, bias=use_bias),
+            nn.ZeroPad2d(2),
+            nn.Conv2d(ngf*1, output_nc, kernel_size=5, padding=2, bias=use_bias),
             nn.Tanh(),
         )
 

@@ -1,20 +1,25 @@
 from torch import nn
 import torch.nn.functional as F
+from .util import get_pad_layer
 
 class DeConvBlock(nn.Module):
-    def __init__(self, input_nc, output_nc, scale_factor=2, kernel_size=3, padding=1, stride=1, use_bias=False):
+    def __init__(self, input_nc, output_nc, scale_factor=2, scale_type="nearest", \
+        kernel_size=3, padding=1, stride=1, use_bias=False, pad_type="zero"):
         super(DeConvBlock, self).__init__()
 
+        pad_layer = get_pad_layer(pad_type)
+
         self.scale_factor = scale_factor
+        self.scale_type = scale_type
         self.model = nn.Sequential(
-            nn.ReflectionPad2d(padding),
+            pad_layer(padding),
             nn.Conv2d(input_nc, output_nc, kernel_size=kernel_size, stride=stride, bias=use_bias),
             nn.BatchNorm2d(output_nc),
             nn.LeakyReLU(inplace=True),
         )
 
     def forward(self, x):
-        x = F.interpolate(x, scale_factor=self.scale_factor)
+        x = F.interpolate(x, scale_factor=self.scale_factor, mode=self.scale_type)
         return self.model(x)
 
 
