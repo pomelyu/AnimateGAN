@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Train demo",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--dataroot=data/demo/faces",
+                "--dataset_mode=anime",
+                "--model=anime_gan",
+                "--gpu_ids=-1",
+                "--name=demo",
+                "--niter=10",
+                "--niter_decay=0",
+                "--print_freq=10",
+                "--display_freq=10",
+                "--save_epoch_freq=1",
+                "--checkpoints_dir=checkpoints/demo",
+                "--continue_train",
+                "--epoch=6",
+                "--epoch_count=7"
+            ]
+        }
+    ]
+}
