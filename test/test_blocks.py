@@ -8,7 +8,7 @@ def test_DeConvBlock():
     dim = 64
     input_nc = 16
     output_nc = 32
-    deConv = DeConvBlock(input_nc, output_nc, scale_factor=2, use_bias=False)
+    deConv = DeConvBlock(input_nc, output_nc, use_bias=False)
 
     x_in = torch.randn(batch_size, input_nc, dim, dim)
     x_out = deConv.forward(x_in)
