@@ -24,7 +24,8 @@ class AnimeDataset(BaseDataset):
         ])
 
     def __getitem__(self, index):
-        latent = torch.from_numpy(np.random.uniform(-1, 1, self.latent_size).astype(np.float32))
+        latent = np.random.normal(0, 1, size=self.latent_size).astype(np.float32)
+        latent = torch.from_numpy(latent)
 
         if not self.opt.isTrain:
             return {"latent": latent}

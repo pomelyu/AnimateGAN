@@ -19,8 +19,8 @@ def test_anime_dataset():
     demo_image = res["image"]
     assert torch.is_tensor(demo_latent)
     assert demo_latent.shape == torch.Tensor(demo_opt.latent_size).shape
-    assert demo_latent.min() >= -1 and demo_latent.max() <= 1
-    # assert demo_latent.type() == torch.ones(1, dtype=torch.float32).type()
+    # assert demo_latent.min() >= -1 and demo_latent.max() <= 1
+    assert demo_latent.type() == torch.ones(1, dtype=torch.float32).type()
     assert isinstance(demo_latent, torch.FloatTensor)
 
     assert torch.is_tensor(demo_image)
