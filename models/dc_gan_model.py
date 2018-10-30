@@ -8,7 +8,7 @@ from .util import init_net
 
 class DCGANModel(BaseModel):
     def name(self):
-        return "AnimeGANModel"
+        return "DCGANGANModel"
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
@@ -36,7 +36,7 @@ class DCGANModel(BaseModel):
         self.netG = init_net(self.netG, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
         self.netD = init_net(self.netD, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
 
-        self.criterionGAN = GANLoss(use_lsgan=False)
+        self.criterionGAN = GANLoss(use_lsgan=False).to(self.device)
         self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
         self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
         self.optimizers = [self.optimizer_G, self.optimizer_D]
