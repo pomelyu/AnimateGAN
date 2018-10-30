@@ -1,17 +1,19 @@
 import torch
 from .base_model import BaseModel
-from .networks import BasicD, BasicG
+from .networks import DCGAN_D, DCGAN_G
 from .loss import GANLoss
 from .util import init_net
 
 # pylint: disable=W0201
 
-class AnimeGANModel(BaseModel):
+class DCGANModel(BaseModel):
     def name(self):
         return "AnimeGANModel"
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
+        parser.set_defaults(ngf=128)
+        parser.set_defaults(ndf=128)
         if is_train:
             parser.add_argument("--every_g", default=5)
             parser.add_argument("--every_d", default=1)
@@ -24,17 +26,17 @@ class AnimeGANModel(BaseModel):
         self.opt = opt
         self.iters = 1
 
-        self.loss_names = ["D", "G"]
-        self.model_names = ["D", "G"]
+        self.loss_names = ["G", "D"]
+        self.model_names = ["G", "D"]
         self.visual_names = ["true", "fake"]
 
-        self.netG = BasicG(opt.latent_size, 3, ngf=opt.ngf, use_bias=False)
-        self.netD = BasicD(3, 1, ndf=opt.ndf, use_bias=False)
+        self.netG = DCGAN_G(opt.latent_size, 3, ngf=opt.ngf, use_bias=False)
+        self.netD = DCGAN_D(3, 1, ndf=opt.ndf, use_bias=False)
 
-        self.netG = init_net(self.netG, init_type="xavier", gpu_ids=opt.gpu_ids)
-        self.netD = init_net(self.netD, init_type="xavier", gpu_ids=opt.gpu_ids)
+        self.netG = init_net(self.netG, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
+        self.netD = init_net(self.netD, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
 
-        self.criterionGAN = GANLoss(use_lsgan=True)
+        self.criterionGAN = GANLoss(use_lsgan=False)
         self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
         self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
         self.optimizers = [self.optimizer_G, self.optimizer_D]
