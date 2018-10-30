@@ -3,6 +3,7 @@ from options.train_options import TrainOptions
 from datasets import CreateDataLoader
 from models import create_model
 from utils.visualizer import Visualizer
+from utils import util
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()
@@ -12,6 +13,7 @@ if __name__ == '__main__':
 
     model = create_model(opt)
     model.setup(opt)
+    util.mkdir(model.save_dir)
     visualizer = Visualizer(opt)
 
     n_iter = (opt.epoch_count - 1) * dataset_size
@@ -31,7 +33,7 @@ if __name__ == '__main__':
         log = "Epoch: {}, n_iter: {}\n".format(epoch, n_iter)
         for name, value in model.get_current_losses().items():
             log += "{}: {:.5f}, ".format(name, value)
-        print(log)
+        visualizer.add_log(log)
 
         if epoch % opt.save_epoch_freq == 0:
             model.save_networks('latest')
