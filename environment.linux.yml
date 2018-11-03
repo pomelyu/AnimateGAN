@@ -1,3 +1,4 @@
+# Cuda 9.0
 name: animate
 channels:
 - anaconda
