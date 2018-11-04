@@ -1,6 +1,7 @@
 from pathlib import Path
 from collections import OrderedDict
 import torch
+from torch.distributions import normal
 from . import util
 
 
@@ -25,6 +26,10 @@ class BaseModel():
         self.model_names = []
         self.visual_names = []
         self.image_paths = []
+
+        self.noise_dist = None
+        self.noise_level = opt.noise_level
+        self.set_noise_volume(1)
 
     def set_input(self, input):
         self.input = input
@@ -155,3 +160,10 @@ class BaseModel():
             if net is not None:
                 for param in net.parameters():
                     param.requires_grad = requires_grad
+
+
+    def set_noise_volume(self, noise_volume):
+        self.noise_dist = normal.Normal(0, noise_volume * self.noise_level)
+
+    def get_noise_tensor_as(self, other):
+        return self.noise_dist.sample(other.shape).to(self.device)

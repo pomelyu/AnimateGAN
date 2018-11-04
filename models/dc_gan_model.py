@@ -1,3 +1,4 @@
+import random
 import torch
 from .base_model import BaseModel
 from .networks import DCGAN_D, DCGAN_G
@@ -28,7 +29,7 @@ class DCGANModel(BaseModel):
 
         self.loss_names = ["G", "D"]
         self.model_names = ["G", "D"]
-        self.visual_names = ["true", "fake"]
+        self.visual_names = ["real", "fake"]
 
         self.netG = DCGAN_G(opt.latent_size, 3, ngf=opt.ngf, use_bias=False)
         self.netD = DCGAN_D(3, 1, ndf=opt.ndf, use_bias=False)
@@ -43,7 +44,7 @@ class DCGANModel(BaseModel):
 
     def set_input(self, input_data):
         self.latent = input_data["latent"]
-        self.true = input_data["image"]
+        self.real = input_data["image"]
 
     def forward(self):
         self.fake = self.netG(self.latent)
@@ -54,8 +55,15 @@ class DCGANModel(BaseModel):
 
     def backward_D(self):
         fake = self.netG(self.latent)
-        self.loss_D = self.criterionGAN(self.netD(fake), False) + \
-            self.criterionGAN(self.netD(self.true), True)
+        real = self.real
+        if self.opt.noise_level > 0:
+            fake = fake + self.get_noise_tensor_as(fake)
+            real = real + self.get_noise_tensor_as(fake)
+
+        if random.random() <= self.opt.flip_prob:
+            self.loss_D = self.criterionGAN(self.netD(fake), True) + self.criterionGAN(self.netD(real), False)
+        else:
+            self.loss_D = self.criterionGAN(self.netD(fake), False) + self.criterionGAN(self.netD(real), True)
         self.loss_D.backward()
 
     def optimize_parameters(self):

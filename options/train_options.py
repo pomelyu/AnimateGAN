@@ -16,6 +16,8 @@ class TrainOptions(BaseOptions):
         parser.add_argument("--lr", type=float, default=0.0002, help="initial learning rate for adam")
         parser.add_argument("--lr_policy", type=str, default="lambda", help="learning rate policy: lambda|step|plateau|cosine")
         parser.add_argument("--lr_decay_iters", type=int, default=50, help="multiply by a gamma every lr_decay_iters iterations")
+        parser.add_argument("--noise_level", type=float, default=0.0, help="max instance noise std, annealing while training")
+        parser.add_argument("--flip_prob", type=float, default=0.0, help="probability of randomly flipping training label to confuse discriminator")
 
         parser.add_argument("--continue_train", action="store_true", help="continue training: load the latest model")
         parser.add_argument("--epoch_count", type=int, default=1, help="the starting epoch count, we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>, ...")

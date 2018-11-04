@@ -25,8 +25,9 @@ def train():
     visualizer = Visualizer(opt)
 
     n_iter = (opt.epoch_count - 1) * dataset_size
+    total_epoch = opt.niter + opt.niter_decay + 1
 
-    for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
+    for epoch in range(opt.epoch_count, total_epoch):
         for data in tqdm(dataset, total=dataset_size, ascii=True):
             model.set_input(data)
             model.optimize_parameters()
@@ -53,6 +54,7 @@ def train():
             model.save_networks(epoch)
 
         model.update_learning_rate()
+        model.set_noise_volume(1 - epoch / total_epoch)
 
 
 if __name__ == '__main__':
