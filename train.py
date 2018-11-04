@@ -5,7 +5,15 @@ from models import create_model
 from utils.visualizer import Visualizer
 from utils import util
 
-if __name__ == '__main__':
+def get_state_message(epoch, n_iter, param_dict):
+    log = "Epoch: {}, n_iter: {}\n".format(epoch, n_iter)
+    for name, value in param_dict.items():
+        log += "{}: {:.5f}, ".format(name, value)
+
+    return log
+
+
+def train():
     opt = TrainOptions().parse()
     data_loader = CreateDataLoader(opt)
     dataset = data_loader.load_data()
@@ -24,19 +32,28 @@ if __name__ == '__main__':
             model.optimize_parameters()
 
             n_iter += 1
-            if n_iter % opt.print_freq == 0:
+            if n_iter % opt.display_freq == 0:
                 for name, value in model.get_current_losses().items():
                     visualizer.add_scalar(name, value, n_iter)
                 for name, image in model.get_current_visuals().items():
                     visualizer.add_image(name, image, n_iter)
 
-        log = "Epoch: {}, n_iter: {}\n".format(epoch, n_iter)
-        for name, value in model.get_current_losses().items():
-            log += "{}: {:.5f}, ".format(name, value)
+            if n_iter % opt.print_freq == 0:
+                log = get_state_message(epoch, n_iter, model.get_current_losses())
+                tqdm.write(log)
+
+            if n_iter % opt.save_lastest_freq == 0:
+                model.save_networks('latest')
+
+
+        log = get_state_message(epoch, n_iter, model.get_current_losses())
         visualizer.add_log(log)
 
         if epoch % opt.save_epoch_freq == 0:
-            model.save_networks('latest')
             model.save_networks(epoch)
 
         model.update_learning_rate()
+
+
+if __name__ == '__main__':
+    train()
