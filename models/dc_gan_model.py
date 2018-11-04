@@ -43,8 +43,8 @@ class DCGANModel(BaseModel):
         self.optimizers = [self.optimizer_G, self.optimizer_D]
 
     def set_input(self, input_data):
-        self.latent = input_data["latent"]
-        self.real = input_data["image"]
+        self.latent = input_data["latent"].to(self.device)
+        self.real = input_data["image"].to(self.device)
 
     def forward(self):
         self.fake = self.netG(self.latent)
@@ -58,7 +58,7 @@ class DCGANModel(BaseModel):
         real = self.real
         if self.opt.noise_level > 0:
             fake = fake + self.get_noise_tensor_as(fake)
-            real = real + self.get_noise_tensor_as(fake)
+            real = real + self.get_noise_tensor_as(real)
 
         if random.random() <= self.opt.flip_prob:
             self.loss_D = self.criterionGAN(self.netD(fake), True) + self.criterionGAN(self.netD(real), False)
