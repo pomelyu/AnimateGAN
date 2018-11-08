@@ -3,7 +3,7 @@ import context # pylint: disable=unused-import
 from models.networks import DCGAN_D, DCGAN_G
 
 
-def test_BasicG():
+def test_DCGAN_G():
     batch_size = 8
     latent_size = 100
     image_size = 64
@@ -28,5 +28,5 @@ def test_DCGAN_D():
 
 
 if __name__ == "__main__":
-    test_BasicG()
-    test_BasicD()
+    test_DCGAN_G()
+    test_DCGAN_D()
