@@ -19,7 +19,7 @@ class BaseOptions():
         parser.add_argument("--crop_size", type=int, default=64, help="then crop to this size")
         parser.add_argument("--batch_size", type=int, default=8, help="input batch size")
         parser.add_argument("--dataset_mode", type=str, default="anime", help="")
-        parser.add_argument("--num_threads", default=4, type=int, help="# threads for loading data")
+        parser.add_argument("--num_threads", default=0, type=int, help="# threads for loading data")
         parser.add_argument("--serial_batches", action="store_true", help="if true, takes images in order to make batches, otherwise takes them randomly")
 
         parser.add_argument("--model", type=str, default="dc_gan", help="")
