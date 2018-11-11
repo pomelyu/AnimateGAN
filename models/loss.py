@@ -41,10 +41,11 @@ class WGANGPLoss(nn.Module):
 
         interp.requires_grad = True
         interp_label = netD(interp)
-        gradient_outputs = torch.ones(interp_label.size()).to(self.device)
+        gradient_outputs = torch.ones(interp_label.shape).to(self.device)
 
         gradient = torch.autograd.grad(outputs=interp_label, inputs=interp, \
-                                        grad_outputs=gradient_outputs, only_inputs=True)[0]
+                                        grad_outputs=gradient_outputs, only_inputs=True, \
+                                        create_graph=True, retain_graph=True)[0]
         gradient = gradient.view(batch_size, -1)
         gradient_penalty = ((torch.norm(gradient, 2, dim=1) - 1) ** 2).mean()
 
