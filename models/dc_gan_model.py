@@ -38,9 +38,10 @@ class DCGANModel(BaseModel):
         self.netD = init_net(self.netD, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
 
         self.criterionGAN = GANLoss(use_lsgan=False).to(self.device)
-        self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-        self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-        self.optimizers = [self.optimizer_G, self.optimizer_D]
+        if self.isTrain:
+            self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizers = [self.optimizer_G, self.optimizer_D]
 
     def set_input(self, input_data):
         self.latent = input_data["latent"].to(self.device)

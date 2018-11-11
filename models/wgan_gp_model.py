@@ -15,8 +15,9 @@ class WGANGPModel(BaseModel):
         parser.set_defaults(ngf=128)
         parser.set_defaults(ndf=128)
         parser.set_defaults(beta1=0)
+
+        parser.add_argument("--lambda_gp", type=float, default=10.0)
         if is_train:
-            parser.add_argument("--lambda_gp", type=float, default=10.0)
             parser.add_argument("--every_g", type=int, default=5)
             parser.add_argument("--every_d", type=int, default=1)
 
@@ -39,9 +40,10 @@ class WGANGPModel(BaseModel):
         self.netD = init_net(self.netD, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
 
         self.criterionGANGP = WGANGPLoss(opt.lambda_gp, self.device).to(self.device)
-        self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-        self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-        self.optimizers = [self.optimizer_G, self.optimizer_D]
+        if self.opt.isTrain:
+            self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizers = [self.optimizer_G, self.optimizer_D]
 
     def set_input(self, input_data):
         self.latent = input_data["latent"].to(self.device)

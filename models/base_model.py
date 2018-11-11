@@ -27,9 +27,10 @@ class BaseModel():
         self.visual_names = []
         self.image_paths = []
 
-        self.noise_dist = None
-        self.noise_level = opt.noise_level
-        self.set_noise_volume(1)
+        if opt.isTrain:
+            self.noise_dist = None
+            self.noise_level = opt.noise_level
+            self.set_noise_volume(1)
 
     def set_input(self, input):
         self.input = input
