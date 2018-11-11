@@ -83,3 +83,8 @@ class DCGANModel(BaseModel):
             self.optimizer_G.step()
 
         self.iters += 1
+
+    def evaluate(self):
+        with torch.no_grad():
+            self.forward()
+            return self.criterionGAN(self.netD(self.fake), True)
