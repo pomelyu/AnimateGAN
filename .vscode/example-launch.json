@@ -51,6 +51,24 @@
                 "--epoch=0",
                 "--epoch_count=1"
             ]
+        },
+        {
+            "name": "Evaluate GAN",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/evaluate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--dataroot=data/demo/faces",
+                "--dataset_mode=anime",
+                "--model=wgan_gp",
+                "--gpu_ids=-1",
+                "--name=dcgan_gp_lr0001",
+                "--checkpoints_dir=checkpoints/demo",
+                "--epoch=10",
+                "--out_dir=out/demo",
+                "--method=inception_score",
+            ]
         }
     ]
 }
