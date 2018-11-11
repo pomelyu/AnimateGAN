@@ -19,16 +19,37 @@
                 "--dataset_mode=anime",
                 "--model=anime_gan",
                 "--gpu_ids=-1",
-                "--name=demo",
+                "--name=dcgan_lr0002",
                 "--niter=10",
                 "--niter_decay=0",
                 "--print_freq=10",
                 "--display_freq=10",
                 "--save_epoch_freq=1",
                 "--checkpoints_dir=checkpoints/demo",
-                "--continue_train",
-                "--epoch=6",
-                "--epoch_count=7"
+                "--epoch=0",
+                "--epoch_count=1"
+            ]
+        },
+        {
+            "name": "Train Demo GP",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--dataroot=data/demo/faces",
+                "--dataset_mode=anime",
+                "--model=wgan_gp",
+                "--gpu_ids=-1",
+                "--name=dcgan_gp_lr0001",
+                "--niter=10",
+                "--niter_decay=0",
+                "--print_freq=10",
+                "--display_freq=10",
+                "--save_epoch_freq=1",
+                "--checkpoints_dir=checkpoints/demo",
+                "--epoch=0",
+                "--epoch_count=1"
             ]
         }
     ]
