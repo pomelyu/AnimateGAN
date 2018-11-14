@@ -26,6 +26,8 @@ class BaseOptions():
         parser.add_argument("--latent_size", type=int, default=100, help="the dimension of latent")
         parser.add_argument("--ngf", type=int, default=64, help="# of gen filters in first conv layer")
         parser.add_argument("--ndf", type=int, default=64, help="# of discrim filters in first conv layer")
+        parser.add_argument("--ngl", type=int, default=5, help="# of layers of generator")
+        parser.add_argument("--ndl", type=int, default=5, help="# of layers of descriminator")
 
         parser.add_argument("--gpu_ids", type=str, default="0", help="gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU")
         parser.add_argument("--name", type=str, default="experiment_name", help="name of the experiment. It decides where to store samples and models")

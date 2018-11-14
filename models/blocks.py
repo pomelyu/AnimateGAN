@@ -1,16 +1,29 @@
 from torch import nn
 from .util import get_pad_layer
+from .layers import DeConvLayer
 
 class DeConvBlock(nn.Module):
-    def __init__(self, input_nc, output_nc, \
+    def __init__(self, input_nc, output_nc, method="convTrans", \
         kernel_size=4, stride=2, padding=1, use_bias=False):
         super(DeConvBlock, self).__init__()
 
-        self.model = nn.Sequential(
-            nn.ConvTranspose2d(input_nc, output_nc, kernel_size, stride, padding=padding, bias=use_bias),
+        model = []
+        if method == "convTrans":
+            model.append(nn.ConvTranspose2d(input_nc, output_nc, kernel_size, stride, \
+                                padding=padding, bias=use_bias))
+        elif method == "deConv":
+            model.append(DeConvLayer(input_nc, output_nc))
+        elif method == "pixlSuffle":
+            raise NotImplementedError("PixelSuffle not implemente")
+        else:
+            raise NameError("Unknown method: " + method)
+
+        model += [
             nn.BatchNorm2d(output_nc),
             nn.ReLU(inplace=True),
-        )
+        ]
+
+        self.model = nn.Sequential(*model)
 
     def forward(self, x):
         return self.model(x)

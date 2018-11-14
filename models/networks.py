@@ -1,24 +1,30 @@
 from torch import nn
 from .blocks import DeConvBlock, ConvBlock
 from .util import get_norm_layer
+from .layers import DeConvLayer
 
 class DCGAN_G(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=128, use_bias=False):
+    def __init__(self, input_nc, output_nc, ngf=128, n_layers=5, use_bias=False):
         super(DCGAN_G, self).__init__()
+        assert n_layers >= 2
 
-        self.model = nn.Sequential(
-            # 1 x 1 => 4 x 4
-            DeConvBlock(input_nc, ngf*8, kernel_size=4, stride=1, padding=0, use_bias=use_bias),
-            # 4 x 4 => 8 x 8
-            DeConvBlock(ngf*8, ngf*4, use_bias=use_bias),
-            # 8 x 8 => 16 x 16
-            DeConvBlock(ngf*4, ngf*2, use_bias=use_bias),
-            # 16 x 16 => 32 x 32
-            DeConvBlock(ngf*2, ngf*1, use_bias=use_bias),
-            # 32 x 32 => 64 x 64
-            nn.ConvTranspose2d(ngf*1, output_nc, kernel_size=4, stride=2, padding=1, bias=use_bias),
+        # 1st layer
+        nc_out = ngf*8
+        model = [DeConvBlock(input_nc, nc_out, kernel_size=4, stride=1, padding=0, use_bias=use_bias)]
+
+        # middle layer
+        for i in reversed(range(0, n_layers-2)):
+            nc_in = nc_out
+            nc_out = nc_out if i >= 3 else nc_in // 2
+            model.append(DeConvBlock(nc_in, nc_out, method="deConv"))
+
+        # output layer
+        model += [
+            DeConvLayer(nc_out, output_nc),
             nn.Tanh(),
-        )
+        ]
+
+        self.model = nn.Sequential(*model)
 
     def forward(self, x):
         x = x.view(x.size()[0], -1, 1, 1)
@@ -26,22 +32,24 @@ class DCGAN_G(nn.Module):
 
 
 class DCGAN_D(nn.Module):
-    def __init__(self, input_nc, output_nc, ndf=128, norm="batch", use_lsgan=False, use_bias=False):
+    def __init__(self, input_nc, output_nc, ndf=128, n_layers=5, norm="batch", use_lsgan=False, use_bias=False):
         super(DCGAN_D, self).__init__()
+        assert n_layers >= 2
 
         norm_layer = get_norm_layer(norm)
-        model = [
-            # 64 x 64 => 32 x 32
-            ConvBlock(input_nc, ndf*1, norm_layer=norm_layer, use_bias=use_bias),
-            # 32 x 32 => 16 x 16
-            ConvBlock(ndf*1, ndf*2, norm_layer=norm_layer, use_bias=use_bias),
-            # 16 x 16 => 8 x 8
-            ConvBlock(ndf*2, ndf*4, norm_layer=norm_layer, use_bias=use_bias),
-            # 8 x 8 => 4 x 4
-            ConvBlock(ndf*4, ndf*8, norm_layer=norm_layer, use_bias=use_bias),
-            # 4 x 4 => 1 x 1
-            nn.Conv2d(ndf*8, output_nc, kernel_size=4, stride=1, padding=0, bias=use_bias),
-        ]
+
+        # 1st layer
+        nc_out = ndf*1
+        model = [ConvBlock(input_nc, nc_out, norm_layer=norm_layer, use_bias=use_bias)]
+
+        # middle layer
+        for _ in range(0, n_layers-2):
+            nc_in = nc_out
+            nc_out = min(ndf*8, nc_in*2)
+            model.append(ConvBlock(nc_in, nc_out, norm_layer=norm_layer, use_bias=use_bias))
+
+        # output layer
+        model.append(nn.Conv2d(ndf*8, output_nc, kernel_size=4, stride=1, padding=0, bias=use_bias))
         if not use_lsgan:
             model += [nn.Sigmoid()]
 
