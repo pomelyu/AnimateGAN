@@ -24,3 +24,22 @@ class DeConvLayer(nn.Module):
     def forward(self, x):
         x = nn.functional.interpolate(x, scale_factor=2)
         return self.model(x)
+
+class FlattenLayer(nn.Module):
+    def forward(self, x):
+        num_batch = x.shape[0]
+        return x.view(num_batch, -1)
+
+class ReshapeLayer(nn.Module):
+    def __init__(self, shape):
+        super(ReshapeLayer, self).__init__()
+        self.shape = shape
+
+    def forward(self, x):
+        num_batch = x.shape[0]
+        return x.view(num_batch, *self.shape)
+
+class L2NormalizeLayer(nn.Module):
+    def forward(self, x):
+        assert len(x.shape) == 2
+        return nn.functional.normalize(x, p=2, dim=1)
