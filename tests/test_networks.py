@@ -24,7 +24,6 @@ def test_DCGAN_D():
     x_out = descrminator.forward(x_in)
 
     assert x_out.shape == torch.Tensor(batch_size, 1, 1, 1).shape
-    assert x_out.min() >= 0 and x_out.max() <= 1
 
 
 if __name__ == "__main__":

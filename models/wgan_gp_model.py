@@ -34,7 +34,7 @@ class WGANGPModel(BaseModel):
         self.visual_names = ["real", "fake"]
 
         self.netG = DCGAN_G(opt.latent_size, 3, ngf=opt.ngf, n_layers=opt.ngl, use_bias=False)
-        self.netD = DCGAN_D(3, 1, norm="none", ndf=opt.ndf, n_layers=opt.ndl, use_lsgan=True, use_bias=False)
+        self.netD = DCGAN_D(3, 1, norm="none", ndf=opt.ndf, n_layers=opt.ndl, use_bias=False)
 
         self.netG = init_net(self.netG, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)
         self.netD = init_net(self.netD, init_type="normal", init_gain=0.02, gpu_ids=opt.gpu_ids)

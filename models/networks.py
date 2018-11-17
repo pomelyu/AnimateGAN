@@ -32,7 +32,7 @@ class DCGAN_G(nn.Module):
 
 
 class DCGAN_D(nn.Module):
-    def __init__(self, input_nc, output_nc, ndf=128, n_layers=5, norm="batch", use_lsgan=False, use_bias=False):
+    def __init__(self, input_nc, output_nc, ndf=128, n_layers=5, norm="batch", use_bias=False):
         super(DCGAN_D, self).__init__()
         assert n_layers >= 2
 
@@ -50,8 +50,6 @@ class DCGAN_D(nn.Module):
 
         # output layer
         model.append(nn.Conv2d(ndf*8, output_nc, kernel_size=4, stride=1, padding=0, bias=use_bias))
-        if not use_lsgan:
-            model += [nn.Sigmoid()]
 
         self.model = nn.Sequential(*model)
 
