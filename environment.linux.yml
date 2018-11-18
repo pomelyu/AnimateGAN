@@ -11,6 +11,8 @@ dependencies:
 - python=3.6
 - pytorch=0.4
 - pip:
+  - face_alignment
+  - opencv-python-headless
   - tensorboardX
   - tqdm
   - pylint
