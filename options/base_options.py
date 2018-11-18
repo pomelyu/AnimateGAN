@@ -14,7 +14,6 @@ class BaseOptions():
         self.isTrain = True
 
     def initialize(self, parser):
-        parser.add_argument("--dataroot", required=True, help="path to images")
         parser.add_argument("--load_size", type=int, default=64, help="scale images to this size")
         parser.add_argument("--crop_size", type=int, default=64, help="then crop to this size")
         parser.add_argument("--batch_size", type=int, default=8, help="input batch size")
@@ -28,6 +27,8 @@ class BaseOptions():
         parser.add_argument("--ndf", type=int, default=64, help="# of discrim filters in first conv layer")
         parser.add_argument("--ngl", type=int, default=5, help="# of layers of generator")
         parser.add_argument("--ndl", type=int, default=5, help="# of layers of descriminator")
+        parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]')
+        parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
 
         parser.add_argument("--gpu_ids", type=str, default="0", help="gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU")
         parser.add_argument("--name", type=str, default="experiment_name", help="name of the experiment. It decides where to store samples and models")

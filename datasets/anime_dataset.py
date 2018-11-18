@@ -10,6 +10,7 @@ from .base_dataset import BaseDataset
 class AnimeDataset(BaseDataset):
     @staticmethod
     def modify_commandline_options(parser, is_train):
+        parser.add_argument("--dataroot", required=True, help="path to images")
         return parser
 
     def initialize(self, opt):
