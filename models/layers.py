@@ -43,3 +43,14 @@ class L2NormalizeLayer(nn.Module):
     def forward(self, x):
         assert len(x.shape) == 2
         return nn.functional.normalize(x, p=2, dim=1)
+
+class GradientReverseLayer(nn.Module):
+    def __init__(self, scale):
+        super(GradientReverseLayer, self).__init__()
+        self.scale = scale
+
+    def forward(self, x):
+        return x.clone()
+
+    def backward(self, grad_out):
+        return -self.scale * grad_out.clone()
