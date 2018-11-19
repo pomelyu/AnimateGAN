@@ -25,8 +25,10 @@ def preprocess_video(opt):
     video.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
     print("Skip to frame: {}".format(frame_index))
 
-    for i in tqdm(range(frame_index, n_frames - fps * opt.skip_tail, opt.skip_frame), ascii=True):
+    for i in tqdm(range(frame_index, n_frames - fps * opt.skip_tail), ascii=True):
         _, frame = video.read()
+        if i % opt.skip_frame != 0:
+            continue
         # TODO: crop region by input argument
         frame = frame[:, 500:-500, :]
         bbox = detect_face(fa, frame)
