@@ -24,11 +24,11 @@ class XGANModel(BaseModel):
         BaseModel.initialize(self, opt)
 
         self.opt = opt
-        self.loss_names = ["G_A", "rec_A", "sem_A", "D_B", "rec_B", "sem_B", "dann"]
-        self.models_name = ["En_A", "En_B", "De_A", "De_B", "En_Shared", "De_Shated"]
+        self.loss_names = ["G_A", "idt_A", "sem_A", "D_B", "idt_B", "sem_B", "dann"]
+        self.model_names = ["En_A", "En_B", "De_A", "De_B", "En_Shared", "De_Shared"]
         if opt.isTrain:
             self.model_names += ["D_B", "LC"]
-        self.visual_names = ["real_A", "real_B", "fake_A", "fake_B"]
+        self.visual_names = ["real_A", "real_B", "fake_A", "fake_B", "rec_A", "rec_B"]
 
         self.netEn_A = XGAN_DomainEncoder()
         self.netEn_B = XGAN_DomainEncoder()
@@ -90,12 +90,12 @@ class XGANModel(BaseModel):
 
     def backward_G(self):
         self.loss_G_A = self.criterionGAN(self.netD_B(self.fake_B), True)
-        self.loss_rec_A = self.criterionL1(self.real_A, self.rec_A) * self.opt.lambda_rec
-        self.loss_rec_B = self.criterionL1(self.real_B, self.rec_B) * self.opt.lambda_rec
+        self.loss_idt_A = self.criterionL1(self.real_A, self.rec_A) * self.opt.lambda_rec / self.real_A.numel()
+        self.loss_idt_B = self.criterionL1(self.real_B, self.rec_B) * self.opt.lambda_rec / self.real_B.numel()
         self.loss_sem_A = self.criterionLatent(self.latent_A, self.sem_B) * self.opt.lambda_sem
         self.loss_sem_B = self.criterionLatent(self.latent_B, self.sem_A) * self.opt.lambda_sem
 
-        total_loss = self.loss_G_A + self.loss_rec_A + self.loss_rec_B + self.loss_sem_A + self.loss_sem_B
+        total_loss = self.loss_G_A + self.loss_idt_A + self.loss_idt_B + self.loss_sem_A + self.loss_sem_B
         total_loss.backward()
 
     def backward_Domain(self):
@@ -111,7 +111,8 @@ class XGANModel(BaseModel):
     def backward_D(self):
         latent_A = self.netEn_Shared(self.netEn_A(self.real_A))
         fake_B = self.netDe_B(self.netDe_Shared(latent_A))
-        self.loss_D_B = self.criterionGAN(fake_B, False)
+        self.loss_D_B = (self.criterionGAN(self.netD_B(fake_B), False) + \
+                        self.criterionGAN(self.netD_B(self.real_B), True)) * 0.5
         self.loss_D_B.backward()
 
     def optimize_parameters(self):
