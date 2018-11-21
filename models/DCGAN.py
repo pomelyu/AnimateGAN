@@ -7,7 +7,7 @@ from .building_blocks.layers import get_norm_layer, DeConvLayer
 from .building_blocks.blocks import DeConvBlock, ConvBlock
 from .util import init_net
 
-# pylint: disable=W0201
+# pylint: disable=attribute-defined-outside-init
 
 class DCGAN(BaseModel):
     def name(self):
@@ -45,7 +45,7 @@ class DCGAN(BaseModel):
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers = [self.optimizer_G, self.optimizer_D]
 
-    def set_input(self, input_data):
+    def set_input(self, input_data): # pylint: disable=arguments-differ
         self.latent = input_data["latent"].to(self.device)
         self.real = input_data["image"].to(self.device)
 
@@ -117,7 +117,7 @@ class DCGAN_G(nn.Module):
 
         self.model = nn.Sequential(*model)
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         x = x.view(x.size()[0], -1, 1, 1)
         return self.model(x)
 
@@ -144,5 +144,5 @@ class DCGAN_D(nn.Module):
 
         self.model = nn.Sequential(*model)
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)

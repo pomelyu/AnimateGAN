@@ -7,6 +7,8 @@ from .building_blocks.loss import GANLoss, LatentSimiliarLoss
 from .util import init_net
 from .base_model import BaseModel
 
+# pylint: disable=attribute-defined-outside-init
+
 class XGAN(BaseModel):
     def name(self):
         return "XGAN"
@@ -74,7 +76,7 @@ class XGAN(BaseModel):
             net = init_net(net, init_type=opt.init_type, init_gain=opt.init_gain, gpu_ids=opt.gpu_ids)
             setattr(self, "net" + name, net)
 
-    def set_input(self, input_data):
+    def set_input(self, input_data): # pylint: disable=arguments-differ
         self.real_A = input_data["A"].to(self.device)
         self.real_B = input_data["B"].to(self.device)
 
@@ -141,7 +143,7 @@ class XGAN_DomainEncoder(nn.Module):
             ConvBlock(32, 64),
         )
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)
 
 
@@ -166,7 +168,7 @@ class XGAN_SharedEncoder(nn.Module):
             L2NormalizeLayer(),
         )
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)
 
 
@@ -181,7 +183,7 @@ class XGAN_SharedDecoder(nn.Module):
             DeConvBlock(512, 256, method="deConv"),
         )
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)
 
 
@@ -198,7 +200,7 @@ class XGAN_DomainDecoder(nn.Module):
             nn.Tanh(),
         )
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)
 
 
@@ -220,7 +222,7 @@ class XGAN_Discriminator(nn.Module):
             nn.Linear(512, 1),
         )
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)
 
 
@@ -238,5 +240,5 @@ class XGAN_LatentClassifer(nn.Module):
             nn.Linear(64, 1),
         )
 
-    def forward(self, x):
+    def forward(self, x): # pylint: disable=arguments-differ
         return self.model(x)
