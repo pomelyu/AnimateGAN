@@ -1,5 +1,5 @@
 # Cuda 9.0
-name: animate
+name: gan_pytorch
 channels:
 - anaconda
 - defaults

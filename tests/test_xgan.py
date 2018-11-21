@@ -1,6 +1,6 @@
 import torch
 import context # pylint: disable=unused-import
-import models.xgan_model as xgan
+from models import XGAN
 
 def assertEqual(t1, t2):
     assert torch.all(torch.lt(torch.abs(torch.add(t1, -t2)), 1e-6))
@@ -10,8 +10,8 @@ def test_encoder():
     latent_size = 1024
     x = torch.rand((batch_size, 3, 64, 64))*2 - 1
 
-    domain_encoder = xgan.XGAN_DomainEncoder()
-    shared_encoder = xgan.XGAN_SharedEncoder()
+    domain_encoder = XGAN.XGAN_DomainEncoder()
+    shared_encoder = XGAN.XGAN_SharedEncoder()
 
     x = domain_encoder(x)
     x = shared_encoder(x)
@@ -24,8 +24,8 @@ def test_decoder():
     latent_size = 1024
     x = torch.rand((batch_size, latent_size))
 
-    shared_decoder = xgan.XGAN_SharedDecoder()
-    domain_decoder = xgan.XGAN_DomainDecoder()
+    shared_decoder = XGAN.XGAN_SharedDecoder()
+    domain_decoder = XGAN.XGAN_DomainDecoder()
 
     x = shared_decoder(x)
     x = domain_decoder(x)
@@ -38,7 +38,7 @@ def test_discriminator():
     batch_size = 8
     x = torch.rand((batch_size, 3, 64, 64))*2 - 1
 
-    discriminator = xgan.XGAN_Discriminator()
+    discriminator = XGAN.XGAN_Discriminator()
 
     x = discriminator(x)
 

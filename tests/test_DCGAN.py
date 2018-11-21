@@ -1,6 +1,6 @@
 import torch
 import context # pylint: disable=unused-import
-from models.networks import DCGAN_D, DCGAN_G
+from models.DCGAN import DCGAN_G, DCGAN_D
 
 
 def test_DCGAN_G():

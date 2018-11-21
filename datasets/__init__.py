@@ -2,8 +2,6 @@ import importlib
 import torch.utils.data
 from .base_data_loader import BaseDataLoader
 from .base_dataset import BaseDataset
-from .anime_dataset import AnimeDataset
-from .unaligned_dataset import UnalignedDataset
 
 def find_dataset_using_name(dataset_name):
     # Given the option --dataset_mode [datasetname],

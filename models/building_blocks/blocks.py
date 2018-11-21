@@ -1,6 +1,5 @@
 from torch import nn
-from .util import get_pad_layer
-from .layers import DeConvLayer
+from .layers import get_pad_layer, DeConvLayer
 
 class DeConvBlock(nn.Module):
     def __init__(self, input_nc, output_nc, method="convTrans", \

@@ -1,6 +1,6 @@
 import torch
 import context # pylint: disable=unused-import
-from datasets import AnimeDataset
+from datasets.latent2image_dataset import Latent2ImageDataset
 
 class Opt():
     dataroot = "data/demo/faces"
@@ -9,9 +9,9 @@ class Opt():
     crop_size = 96
     isTrain = True
 
-def test_anime_dataset():
+def test_latent2image_dataset():
     demo_opt = Opt()
-    demo_dataset = AnimeDataset()
+    demo_dataset = Latent2ImageDataset()
     demo_dataset.initialize(demo_opt)
 
     res = demo_dataset[0]
@@ -33,4 +33,4 @@ def test_anime_dataset():
     print("Test: animate_dataset pass!")
 
 if __name__ == "__main__":
-    test_anime_dataset()
+    test_latent2image_dataset()

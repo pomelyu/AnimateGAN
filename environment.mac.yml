@@ -1,4 +1,4 @@
-name: animate
+name: gan_pytorch
 channels:
 - anaconda
 - defaults

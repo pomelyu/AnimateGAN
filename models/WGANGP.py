@@ -1,14 +1,14 @@
 import torch
 from .base_model import BaseModel
-from .networks import DCGAN_D, DCGAN_G
-from .loss import WGANGPLoss
+from .building_blocks.loss import WGANGPLoss
 from .util import init_net
+from .DCGAN import DCGAN_G, DCGAN_D
 
 # pylint: disable=W0201
 
-class WGANGPModel(BaseModel):
+class WGANGP(BaseModel):
     def name(self):
-        return "WGANGPModel"
+        return "WGANGP"
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):

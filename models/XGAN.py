@@ -1,15 +1,15 @@
 import itertools
 import torch
 from torch import nn
-from .blocks import DeConvBlock, ConvBlock
-from .layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverseLayer
-from .loss import GANLoss, LatentSimiliarLoss
+from .building_blocks.blocks import DeConvBlock, ConvBlock
+from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverseLayer
+from .building_blocks.loss import GANLoss, LatentSimiliarLoss
 from .util import init_net
 from .base_model import BaseModel
 
-class XGANModel(BaseModel):
+class XGAN(BaseModel):
     def name(self):
-        return "XGANModel"
+        return "XGAN"
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):

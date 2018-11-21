@@ -7,7 +7,10 @@ from .base_dataset import BaseDataset
 
 # pylint: disable=W0201
 
-class AnimeDataset(BaseDataset):
+class Latent2ImageDataset(BaseDataset):
+    def name(self):
+        return 'Latent2ImageDataset'
+
     @staticmethod
     def modify_commandline_options(parser, is_train):
         parser.add_argument("--dataroot", required=True, help="path to images")
@@ -40,6 +43,3 @@ class AnimeDataset(BaseDataset):
 
     def __len__(self):
         return len(self.data)
-
-    def name(self):
-        return 'AnimeDataset'

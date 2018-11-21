@@ -4,9 +4,9 @@ from torchvision import transforms as T
 from .base_dataset import BaseDataset
 from .image_folder import make_dataset
 
-class UnalignedDataset(BaseDataset):
+class Image2ImageDataset(BaseDataset):
     def name(self):
-        return "UnalignedDataset"
+        return "Image2ImageDataset"
 
     @staticmethod
     def modify_commandline_options(parser, is_train):

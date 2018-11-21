@@ -1,6 +1,6 @@
 import torch
 import context # pylint: disable=unused-import
-from datasets import UnalignedDataset
+from datasets.image2image_dataset import Image2ImageDataset
 
 class Opt():
     dataA = "data/demo/faces"
@@ -8,10 +8,11 @@ class Opt():
     load_size = 64
     crop_size = 64
     isTrain = True
+    serial_batches = False
 
-def test_unaligned_dataset():
+def test_image2image_dataset():
     demo_opt = Opt()
-    demo_dataset = UnalignedDataset()
+    demo_dataset = Image2ImageDataset()
     demo_dataset.initialize(demo_opt)
 
     res = demo_dataset[0]
@@ -31,4 +32,4 @@ def test_unaligned_dataset():
     assert isinstance(res["B_paths"], str)
 
 if __name__ == "__main__":
-    test_unaligned_dataset()
+    test_image2image_dataset()

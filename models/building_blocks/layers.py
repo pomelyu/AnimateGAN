@@ -1,5 +1,28 @@
+import functools
 from torch import nn
 import torch.nn.functional as F
+
+def get_norm_layer(norm_type='instance'):
+    if norm_type == 'batch':
+        norm_layer = functools.partial(nn.BatchNorm2d, affine=True)
+    elif norm_type == 'instance':
+        norm_layer = functools.partial(nn.InstanceNorm2d, affine=False, track_running_stats=False)
+    elif norm_type == 'none':
+        norm_layer = SkipLayer
+    else:
+        raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
+    return norm_layer
+
+def get_pad_layer(pad_type="zero"):
+    if pad_type == "zero":
+        pad_layer = functools.partial(nn.ZeroPad2d)
+    elif pad_type == "reflect":
+        pad_layer = functools.partial(nn.ReflectionPad2d)
+    elif pad_type == "replicate":
+        pad_layer = functools.partial(nn.ReplicationPad2d)
+    else:
+        raise NotImplementedError('padding layer [%s] is not found' % pad_type)
+    return pad_layer
 
 class SkipLayer(nn.Module):
     def __init__(self, *args): # pylint: disable=unused-argument
