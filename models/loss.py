@@ -53,3 +53,18 @@ class WGANGPLoss(nn.Module):
 
     def generator_loss(self, fake_label):
         return -fake_label.mean()
+
+
+class LatentSimiliarLoss(nn.Module):
+    def __init__(self, target=1):
+        super(LatentSimiliarLoss, self).__init__()
+        self.register_buffer('target', torch.ones(1) * target)
+        self.loss = nn.CosineEmbeddingLoss()
+
+    def get_target_tensor(self, x):
+        return self.target.expand(1, x.shape[0])
+
+    def __call__(self, x1, x2):
+        assert x1.shape == x2.shape
+        target_tensor = self.get_target_tensor(x1)
+        return self.loss(x1, x2, target_tensor)
