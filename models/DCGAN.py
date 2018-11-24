@@ -17,17 +17,12 @@ class DCGAN(BaseModel):
     def modify_commandline_options(parser, is_train=True):
         parser.set_defaults(ngf=128)
         parser.set_defaults(ndf=128)
-        if is_train:
-            parser.add_argument("--every_g", default=5)
-            parser.add_argument("--every_d", default=1)
-
         return parser
 
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
 
         self.opt = opt
-        self.iters = 1
 
         self.loss_names = ["G", "D"]
         self.model_names = ["G", "D"]
@@ -72,19 +67,15 @@ class DCGAN(BaseModel):
     def optimize_parameters(self):
         self.forward()
 
-        if self.iters % self.opt.every_d == 0:
-            self.set_requires_grad([self.netD], True)
-            self.optimizer_D.zero_grad()
-            self.backward_D()
-            self.optimizer_D.step()
+        self.set_requires_grad([self.netD], True)
+        self.optimizer_D.zero_grad()
+        self.backward_D()
+        self.optimizer_D.step()
 
-        if self.iters % self.opt.every_g == 0:
-            self.set_requires_grad([self.netD], False)
-            self.optimizer_G.zero_grad()
-            self.backward_G()
-            self.optimizer_G.step()
-
-        self.iters += 1
+        self.set_requires_grad([self.netD], False)
+        self.optimizer_G.zero_grad()
+        self.backward_G()
+        self.optimizer_G.step()
 
     def evaluate(self):
         with torch.no_grad():
