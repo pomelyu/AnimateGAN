@@ -8,11 +8,10 @@
             "program": "${workspaceFolder}/train.py",
             "console": "integratedTerminal",
             "args": [
+                "--model=DCGAN",
                 "--dataroot=data/anime/faces",
-                "--dataset_mode=anime",
-                "--model=dc_gan",
+                "--dataset_mode=latent2image",
                 "--gpu_ids=0",
-                "--name=dcgan_lr0002",
                 "--niter=150",
                 "--niter_decay=50",
                 "--print_freq=2000",
