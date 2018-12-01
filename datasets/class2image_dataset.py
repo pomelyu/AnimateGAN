@@ -13,7 +13,8 @@ class Class2ImageDataset(BaseDataset):
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
-        parser.add_argument("--dataroot", required=True, help="path to folder")
+        parser.add_argument("--dataroot", type=str, default="", help="path to folder")
+        parser.add_argument("--latent_size", type=int, default=100, help="the dimension of latent")
         return parser
 
     def initialize(self, opt):

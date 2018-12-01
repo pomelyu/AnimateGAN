@@ -15,8 +15,6 @@ class XGAN(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
-        parser.set_defaults(dataroot="no effect")
-        parser.add_argument("--direction", type=str, default="AtoB", help="AtoB, BtoA")
         parser.add_argument("--lambda_dann", type=float, default=1.0)
         parser.add_argument("--lambda_sem", type=float, default=1.0)
         parser.add_argument("--lambda_rec", type=float, default=1.0)

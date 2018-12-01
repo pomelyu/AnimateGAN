@@ -1,5 +1,6 @@
 from pathlib import Path
 import argparse
+import yaml
 import torch
 
 import models
@@ -8,12 +9,19 @@ from utils import util
 
 # pylint: disable=line-too-long, W0201
 
+def load_yaml_config(config):
+    config = Path(config)
+    if config.is_file:
+        with config.open("r") as f:
+            return yaml.load(f)
+
 class BaseOptions():
     def __init__(self):
         self.initialized = False
         self.isTrain = True
 
     def initialize(self, parser):
+        parser.add_argument("--config", type=str, default="", help="path to yaml config file")
         parser.add_argument("--load_size", type=int, default=64, help="scale images to this size")
         parser.add_argument("--crop_size", type=int, default=64, help="then crop to this size")
         parser.add_argument("--batch_size", type=int, default=8, help="input batch size")
@@ -22,7 +30,6 @@ class BaseOptions():
         parser.add_argument("--serial_batches", action="store_true", help="if true, takes images in order to make batches, otherwise takes them randomly")
 
         parser.add_argument("--model", type=str, default="dc_gan", help="")
-        parser.add_argument("--latent_size", type=int, default=100, help="the dimension of latent")
         parser.add_argument("--ngf", type=int, default=64, help="# of gen filters in first conv layer")
         parser.add_argument("--ndf", type=int, default=64, help="# of discrim filters in first conv layer")
         parser.add_argument("--ngl", type=int, default=5, help="# of layers of generator")
@@ -48,22 +55,40 @@ class BaseOptions():
             parser = self.initialize(parser)
 
         # get the basic options
-        opt, _ = parser.parse_known_args()
+        opt = Opt()
+        parser.parse_known_args(namespace=opt)
+        opt_modified = {k: getattr(opt, k) for k in opt.args() if parser.get_default(k) != getattr(opt, k)}
+        opt_yaml = load_yaml_config(getattr(opt, "config"))
+        opt.update_known_args(opt_yaml)
+        opt.update_known_args(opt_modified)
 
         # modify model-related parser options
-        model_name = opt.model
+        model_name = getattr(opt, "model")
         model_option_setter = models.get_option_setter(model_name)
         parser = model_option_setter(parser, self.isTrain)
-        opt, _ = parser.parse_known_args()  # parse again with the new defaults
+        # parse again with the new defaults
+        opt = Opt()
+        parser.parse_known_args(namespace=opt)
+        opt_modified = {k: getattr(opt, k) for k in opt.args() if parser.get_default(k) != getattr(opt, k)}
+        opt_yaml = load_yaml_config(getattr(opt, "config"))
+        opt.update_known_args(opt_yaml)
+        opt.update_known_args(opt_modified)
 
         # modify dataset-related parser options
-        dataset_name = opt.dataset_mode
+        dataset_name = getattr(opt, "dataset_mode")
         dataset_option_setter = datasets.get_option_setter(dataset_name)
         parser = dataset_option_setter(parser, self.isTrain)
 
         self.parser = parser
 
-        return parser.parse_args()
+        opt = Opt()
+        parser.parse_args(namespace=opt)
+        opt_modified = {k: getattr(opt, k) for k in opt.args() if parser.get_default(k) != getattr(opt, k)}
+        opt_yaml = load_yaml_config(getattr(opt, "config"))
+        opt.update_args(opt_yaml)
+        opt.update_args(opt_modified)
+
+        return opt
 
     def print_options(self, opt):
         message = ""
@@ -99,7 +124,10 @@ class BaseOptions():
         self.print_options(opt)
 
         # set gpu ids
-        str_ids = opt.gpu_ids.split(",")
+        if isinstance(opt.gpu_ids, int):
+            str_ids = [str(opt.gpu_ids)]
+        else:
+            str_ids = opt.gpu_ids.split(",")
         opt.gpu_ids = []
         for str_id in str_ids:
             gpu_id = int(str_id)
@@ -110,3 +138,39 @@ class BaseOptions():
 
         self.opt = opt
         return self.opt
+
+
+class Opt():
+    def __init__(self):
+        self.__raise_unknown = True
+
+    def update_known_args(self, new_opt):
+        self.__raise_unknown = False
+        self._update(new_opt)
+
+    def update_args(self, new_opt):
+        self.__raise_unknown = True
+        self._update(new_opt)
+
+    def args(self):
+        return [k for k in dir(self) if self._valid_key(self, k)]
+
+    def _update(self, new_opt):
+        if isinstance(new_opt, dict):
+            for k, v in new_opt.items():
+                if hasattr(self, k):
+                    setattr(self, k, v)
+                elif self.__raise_unknown:
+                    raise KeyError("Unknown key: " + k)
+
+        else:
+            for k in dir(new_opt):
+                if self._valid_key(new_opt, k):
+                    setattr(self, k, v)
+
+    def _valid_key(self, obj, k):
+        if k.startswith("__") or callable(getattr(obj, k)):
+            return False
+        if not hasattr(self, k) and self.__raise_unknown:
+            raise KeyError("Unknown key: " + k)
+        return True

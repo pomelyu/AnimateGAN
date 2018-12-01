@@ -10,8 +10,8 @@ class Image2ImageDataset(BaseDataset):
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
-        parser.add_argument("--dataA", type=str, required=True)
-        parser.add_argument("--dataB", type=str, required=True)
+        parser.add_argument("--dataA", type=str, default="")
+        parser.add_argument("--dataB", type=str, default="")
         return parser
 
     def initialize(self, opt):
