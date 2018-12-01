@@ -15,7 +15,7 @@
             "program": "${workspaceFolder}/train.py",
             "console": "integratedTerminal",
             "args": [
-                "--config=config/demo_DCGAN.yml",
+                "--config=config/demo/demo_DCGAN.yml",
             ]
         },
         {
@@ -25,7 +25,7 @@
             "program": "${workspaceFolder}/train.py",
             "console": "integratedTerminal",
             "args": [
-                "--config=config/demo_WGANGP.yml",
+                "--config=config/demo/demo_WGANGP.yml",
             ]
         },
         {
@@ -35,7 +35,7 @@
             "program": "${workspaceFolder}/train.py",
             "console": "integratedTerminal",
             "args": [
-                "--config=config/demo_ACGAN.yml",
+                "--config=config/demo/demo_ACGAN.yml",
             ]            
         },
         {
@@ -45,7 +45,7 @@
             "program": "${workspaceFolder}/train.py",
             "console": "integratedTerminal",
             "args": [
-                "--config=config/demo_XGAN.yml",
+                "--config=config/demo/demo_XGAN.yml",
             ]
         },
         {

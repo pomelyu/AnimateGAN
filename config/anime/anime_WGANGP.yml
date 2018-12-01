@@ -1,0 +1,38 @@
+# Network
+model: WGANGP
+ngf: 128
+ndf: 128
+
+# Dataset
+dataset_mode: latent2image
+dataroot: data/anime/faces
+load_size: 64
+crop_size: 64
+latent_size: 100
+serial_batches: False
+
+# Train process
+checkpoints_dir: ./checkpoints/anime
+num_threads: 0
+gpu_ids: 0
+print_freq: 1000
+display_freq: 2000
+save_epoch_freq: 20
+niter: 150
+niter_decay: 50 
+continue_train: False
+epoch: 0
+epoch_count: 1
+
+# Major hyper parameters
+name: dcgan_gp_lr0001
+batch_size: 8
+lr: 0.0001
+beta1: 0
+init_type: normal
+init_gain: 0.02
+noise_level: 0
+flip_prob: 0
+lambda_gp: 10
+every_g: 5
+every_d: 1
