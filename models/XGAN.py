@@ -18,6 +18,7 @@ class XGAN(BaseModel):
         parser.add_argument("--lambda_dann", type=float, default=1.0)
         parser.add_argument("--lambda_sem", type=float, default=1.0)
         parser.add_argument("--lambda_rec", type=float, default=1.0)
+        parser.add_argument("--revsersed_ratio", type=float, default=1.0)
         return parser
 
     def initialize(self, opt):
@@ -44,7 +45,7 @@ class XGAN(BaseModel):
         if opt.isTrain:
             # self.netD_A = XGAN_Discriminator()
             self.netD_B = XGAN_Discriminator()
-            self.netLC = XGAN_LatentClassifer()
+            self.netLC = XGAN_LatentClassifer(opt.revsersed_ratio)
             self.optimizer_G = torch.optim.Adam(itertools.chain(
                 self.netEn_A.parameters(),
                 self.netEn_B.parameters(),
@@ -225,10 +226,10 @@ class XGAN_Discriminator(nn.Module):
 
 
 class XGAN_LatentClassifer(nn.Module):
-    def __init__(self):
+    def __init__(self, revsersed_ratio=1):
         super(XGAN_LatentClassifer, self).__init__()
         self.model = nn.Sequential(
-            GradientReverseLayer(1),
+            GradientReverseLayer(revsersed_ratio=revsersed_ratio),
             nn.Linear(1024, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(True),

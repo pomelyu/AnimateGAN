@@ -1,4 +1,5 @@
 import functools
+import torch
 from torch import nn
 import torch.nn.functional as F
 
@@ -68,12 +69,20 @@ class L2NormalizeLayer(nn.Module):
         return nn.functional.normalize(x, p=2, dim=1)
 
 class GradientReverseLayer(nn.Module):
-    def __init__(self, scale):
+    def __init__(self, revsersed_ratio=1):
         super(GradientReverseLayer, self).__init__()
-        self.scale = scale
+        self.layer = GradientReverse(revsersed_ratio)
 
     def forward(self, x):
-        return x.clone()
+        return self.layer(x)
+
+class GradientReverse(torch.autograd.Function):
+    def __init__(self, revsersed_ratio=1):
+        super(GradientReverse, self).__init__()
+        self.revsersed_ratio = revsersed_ratio
+
+    def forward(self, x):
+        return x.view_as(x)
 
     def backward(self, grad_out):
-        return -self.scale * grad_out.clone()
+        return -self.revsersed_ratio * grad_out.clone()

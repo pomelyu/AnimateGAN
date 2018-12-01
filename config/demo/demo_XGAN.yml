@@ -36,3 +36,4 @@ flip_prob: 0
 lambda_dann: 1
 lambda_sem: 1
 lambda_rec: 1
+revsersed_ratio: 1
