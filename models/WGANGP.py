@@ -53,14 +53,14 @@ class WGANGP(BaseModel):
         self.fake = self.netG(self.latent)
 
     def backward_G(self):
-        self.loss_G = self.criterionGANGP.generator_loss(self.netD(self.fake))
+        self.loss_G = self.criterionGANGP.loss_G(self.netD(self.fake))
         self.loss_G.backward()
 
     def backward_D(self):
         fake = self.netG(self.latent)
         real = self.real
-
-        self.loss_D = self.criterionGANGP.discriminator_loss(self.netD, real, fake)
+        interp = self.criterionGANGP.interp_real_fake(real, fake)
+        self.loss_D = self.criterionGANGP.loss_D(self.netD(real), self.netD(fake), self.netD(interp), interp)
         self.loss_D.backward()
 
     def optimize_parameters(self):
