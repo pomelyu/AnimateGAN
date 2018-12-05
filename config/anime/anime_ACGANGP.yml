@@ -15,11 +15,11 @@ serial_batches: False
 checkpoints_dir: ./checkpoints/anime_label
 num_threads: 0
 gpu_ids: 0
-print_freq: 10
-display_freq: 10
-save_epoch_freq: 1
-niter: 50
-niter_decay: 50
+print_freq: 200
+display_freq: 500
+save_epoch_freq: 5
+niter: 100
+niter_decay: 100
 continue_train: False
 epoch: 0
 epoch_count: 1
