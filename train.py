@@ -34,12 +34,12 @@ def train():
 
             n_iter += 1
             if n_iter % opt.display_freq == 0:
-                for name, value in model.get_current_losses().items():
-                    visualizer.add_scalar(name, value, n_iter)
                 for name, image in model.get_current_visuals().items():
                     visualizer.add_image(name, image, n_iter)
 
             if n_iter % opt.print_freq == 0:
+                for name, value in model.get_current_losses().items():
+                    visualizer.add_scalar(name, value, n_iter)
                 log = get_state_message(epoch, n_iter, model.get_current_losses())
                 tqdm.write(log)
 
