@@ -3,7 +3,7 @@ from .layers import get_pad_layer, DeConvLayer
 
 class DeConvBlock(nn.Module):
     def __init__(self, input_nc, output_nc, method="convTrans", \
-        kernel_size=4, stride=2, padding=1, use_bias=False):
+        kernel_size=4, stride=2, norm_layer=nn.BatchNorm2d, padding=1, use_bias=False):
         super(DeConvBlock, self).__init__()
 
         model = []
@@ -18,7 +18,7 @@ class DeConvBlock(nn.Module):
             raise NameError("Unknown method: " + method)
 
         model += [
-            nn.BatchNorm2d(output_nc),
+            norm_layer(output_nc),
             nn.ReLU(inplace=True),
         ]
 

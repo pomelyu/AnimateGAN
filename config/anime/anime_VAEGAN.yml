@@ -1,0 +1,37 @@
+# Network
+model: VAEGAN
+ngf: 32
+ndf: 64
+
+# Dataset
+dataset_mode: latent2image
+dataroot: data/anime_label/images
+load_size: 64
+crop_size: 64
+latent_size: 256
+serial_batches: False
+
+# Train process
+checkpoints_dir: ./checkpoints/anime_vaegan
+num_threads: 0
+gpu_ids: 0
+print_freq: 100
+display_freq: 500
+save_epoch_freq: 5
+niter: 100
+niter_decay: 100 
+continue_train: False
+epoch: 0
+epoch_count: 1
+
+# Major hyper parameters
+name: gp_lr2e-4b64
+batch_size: 64
+lr: 0.00002
+beta1: 0
+lambda_kl: 1
+lambda_idt: 10
+lambda_gp: 10
+every_g: 5
+init_type: xavier
+init_gain: 0.02

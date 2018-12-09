@@ -68,3 +68,9 @@ class LatentSimiliarLoss(nn.Module):
         assert x1.shape == x2.shape
         target_tensor = self.get_target_tensor(x1)
         return self.loss(x1, x2, target_tensor)
+
+class KLLoss(nn.Module):
+    def __call__(self, mu, logvar):
+        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        n = mu.numel()
+        return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / n
