@@ -1,8 +1,9 @@
 import itertools
+import math
 import torch
 from torch import nn
 from .building_blocks.blocks import DeConvBlock, ConvBlock
-from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverseLayer
+from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverse
 from .building_blocks.loss import GANLoss, LatentSimiliarLoss
 from .util import init_net
 from .base_model import BaseModel
@@ -15,20 +16,23 @@ class XGAN(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
-        parser.add_argument("--lambda_dann", type=float, default=1.0)
-        parser.add_argument("--lambda_sem", type=float, default=1.0)
-        parser.add_argument("--lambda_rec", type=float, default=1.0)
-        parser.add_argument("--revsersed_ratio", type=float, default=1.0)
+        if is_train:
+            parser.add_argument("--lr_domain", type=float, default=0.001)
+            parser.add_argument("--beta1_domain", type=float, default=0.9)
+            parser.add_argument("--lambda_dann", type=float, default=1.0)
+            parser.add_argument("--lambda_sem", type=float, default=1.0)
+            parser.add_argument("--lambda_rec", type=float, default=1.0)
+            parser.add_argument("--reverse_gamma", type=float, default=10.0)
         return parser
 
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
 
         self.opt = opt
-        self.loss_names = ["G_A", "idt_A", "sem_A", "D_B", "idt_B", "sem_B", "dann"]
+        self.loss_names = ["G_A", "D_A", "idt_A", "sem_A", "G_A", "D_B", "idt_B", "sem_B", "dann"]
         self.model_names = ["En_A", "En_B", "De_A", "De_B", "En_Shared", "De_Shared"]
         if opt.isTrain:
-            self.model_names += ["D_B", "LC"]
+            self.model_names += ["D_A", "D_B", "LC"]
         self.visual_names = ["real_A", "real_B", "fake_A", "fake_B", "rec_A", "rec_B"]
 
         self.netEn_A = XGAN_DomainEncoder()
@@ -38,14 +42,16 @@ class XGAN(BaseModel):
         self.netEn_Shared = XGAN_SharedEncoder()
         self.netDe_Shared = XGAN_SharedDecoder()
 
-        self.criterionGAN = GANLoss().to(self.device)
+        self.criterionGAN = GANLoss(use_lsgan=False).to(self.device)
+        self.criterionDomain = GANLoss(use_lsgan=False).to(self.device)
         self.criterionL1 = nn.L1Loss().to(self.device)
         self.criterionLatent = LatentSimiliarLoss().to(self.device)
 
         if opt.isTrain:
-            # self.netD_A = XGAN_Discriminator()
+            self.netD_A = XGAN_Discriminator()
             self.netD_B = XGAN_Discriminator()
-            self.netLC = XGAN_LatentClassifer(opt.revsersed_ratio)
+            self.netLC = XGAN_LatentClassifer()
+            self.revert_gradient = GradientReverse(0)
             self.optimizer_G = torch.optim.Adam(itertools.chain(
                 self.netEn_A.parameters(),
                 self.netEn_B.parameters(),
@@ -55,7 +61,7 @@ class XGAN(BaseModel):
                 self.netDe_B.parameters(),
             ), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(itertools.chain(
-                # self.netD_A.parameters(),
+                self.netD_A.parameters(),
                 self.netD_B.parameters(),
             ), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_Domain = torch.optim.Adam(itertools.chain(
@@ -63,7 +69,7 @@ class XGAN(BaseModel):
                 self.netEn_B.parameters(),
                 self.netEn_Shared.parameters(),
                 self.netLC.parameters(),
-            ), lr=opt.lr, betas=(opt.beta1, 0.999))
+            ), lr=opt.lr_domain, betas=(opt.beta1_domain, 0.999))
             self.optimizers = [
                 self.optimizer_G,
                 self.optimizer_D,
@@ -90,7 +96,8 @@ class XGAN(BaseModel):
         self.sem_B = self.netEn_Shared(self.netEn_B(self.fake_B))
 
     def backward_G(self):
-        self.loss_G_A = self.criterionGAN(self.netD_B(self.fake_B), True)
+        self.loss_G_A = self.criterionGAN(self.netD_A(self.fake_A), True)
+        self.loss_G_B = self.criterionGAN(self.netD_B(self.fake_B), True)
         self.loss_idt_A = self.criterionL1(self.real_A, self.rec_A) * self.opt.lambda_rec / self.real_A.numel()
         self.loss_idt_B = self.criterionL1(self.real_B, self.rec_B) * self.opt.lambda_rec / self.real_B.numel()
         self.loss_sem_A = self.criterionLatent(self.latent_A, self.sem_B) * self.opt.lambda_sem
@@ -103,18 +110,29 @@ class XGAN(BaseModel):
         latent_A = self.netEn_Shared(self.netEn_A(self.real_A))
         latent_B = self.netEn_Shared(self.netEn_B(self.real_B))
 
-        self.loss_dann = self.criterionGAN(self.netLC(latent_A), True) + \
-                         self.criterionGAN(self.netLC(latent_B), False)
+        latent_A = self.revert_gradient(latent_A)
+        latent_B = self.revert_gradient(latent_B)
+
+        self.loss_dann = self.criterionDomain(self.netLC(latent_A), True) + \
+                         self.criterionDomain(self.netLC(latent_B), False)
 
         self.loss_dann = self.loss_dann * self.opt.lambda_dann
         self.loss_dann.backward()
 
     def backward_D(self):
         latent_A = self.netEn_Shared(self.netEn_A(self.real_A))
+        latent_B = self.netEn_Shared(self.netEn_B(self.real_B))
+
+        fake_A = self.netDe_A(self.netDe_Shared(latent_B))
         fake_B = self.netDe_B(self.netDe_Shared(latent_A))
-        self.loss_D_B = (self.criterionGAN(self.netD_B(fake_B), False) + \
-                        self.criterionGAN(self.netD_B(self.real_B), True)) * 0.5
-        self.loss_D_B.backward()
+
+        self.loss_D_A = (self.criterionGAN(self.netD_A(self.real_A), True) + \
+                            self.criterionGAN(self.netD_A(fake_A), False)) * 0.5
+        self.loss_D_B = (self.criterionGAN(self.netD_B(self.real_B), True) + \
+                            self.criterionGAN(self.netD_B(fake_B), False)) * 0.5
+
+        total_loss = self.loss_D_A + self.loss_D_B
+        total_loss.backward()
 
     def optimize_parameters(self):
         self.forward()
@@ -130,6 +148,12 @@ class XGAN(BaseModel):
         self.optimizer_D.zero_grad()
         self.backward_D()
         self.optimizer_D.step()
+
+    def update_epoch_params(self, epoch):
+        super(XGAN, self).update_epoch_params(epoch)
+        p = self.epoch / self.total_epoch
+        reverse_ratio = 2 / (1 + math.exp(-self.opt.reverse_gamma * p)) - 1
+        self.revert_gradient.set_reversed_ratio(reverse_ratio)
 
 
 class XGAN_DomainEncoder(nn.Module):
@@ -226,10 +250,9 @@ class XGAN_Discriminator(nn.Module):
 
 
 class XGAN_LatentClassifer(nn.Module):
-    def __init__(self, revsersed_ratio=1):
+    def __init__(self):
         super(XGAN_LatentClassifer, self).__init__()
         self.model = nn.Sequential(
-            GradientReverseLayer(revsersed_ratio=revsersed_ratio),
             nn.Linear(1024, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(True),

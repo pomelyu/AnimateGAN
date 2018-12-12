@@ -18,6 +18,8 @@ class BaseModel():
 
     def initialize(self, opt):
         self.opt = opt
+        self.epoch = opt.epoch_count
+        self.total_epoch = opt.niter + opt.niter_decay + 1
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
         self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')
@@ -30,7 +32,6 @@ class BaseModel():
         if opt.isTrain:
             self.noise_dist = None
             self.noise_level = opt.noise_level
-            self.set_noise_volume(1)
 
     def set_input(self, input):
         self.input = input
@@ -167,7 +168,10 @@ class BaseModel():
                     param.requires_grad = requires_grad
 
 
-    def set_noise_volume(self, noise_volume):
+    def update_epoch_params(self, epoch):
+        self.epoch = epoch
+        noise_volume = 1 - epoch / self.total_epoch
+
         self.noise_dist = normal.Normal(0, noise_volume * self.noise_level)
 
     def get_noise_tensor_as(self, other):

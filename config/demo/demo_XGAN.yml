@@ -29,11 +29,13 @@ name: xgan
 batch_size: 8
 lr: 0.0001
 beta1: 0.5
+lr_domain: 0.001
+beta1_domain: 0.9
 init_type: normal
 init_gain: 0.02
 noise_level: 0
 flip_prob: 0
-lambda_dann: 1
-lambda_sem: 1
-lambda_rec: 1
-revsersed_ratio: 1
+reverse_gamma: 10
+lambda_dann: 2
+lambda_sem: 5
+lambda_rec: 10

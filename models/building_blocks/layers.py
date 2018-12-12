@@ -68,14 +68,6 @@ class L2NormalizeLayer(nn.Module):
         assert len(x.shape) == 2
         return nn.functional.normalize(x, p=2, dim=1)
 
-class GradientReverseLayer(nn.Module):
-    def __init__(self, revsersed_ratio=1):
-        super(GradientReverseLayer, self).__init__()
-        self.layer = GradientReverse(revsersed_ratio)
-
-    def forward(self, x):
-        return self.layer(x)
-
 class GradientReverse(torch.autograd.Function):
     def __init__(self, revsersed_ratio=1):
         super(GradientReverse, self).__init__()
@@ -86,3 +78,6 @@ class GradientReverse(torch.autograd.Function):
 
     def backward(self, grad_out):
         return -self.revsersed_ratio * grad_out.clone()
+
+    def set_reversed_ratio(self, revsersed_ratio):
+        self.revsersed_ratio = revsersed_ratio
