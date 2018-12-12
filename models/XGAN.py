@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from .building_blocks.blocks import DeConvBlock, ConvBlock
 from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverse, get_norm_layer
-from .building_blocks.loss import WGANGPLoss, GANLoss, LatentSimiliarLoss
+from .building_blocks.loss import WGANGPLoss, GANLoss
 from .util import init_net
 from .base_model import BaseModel
 
@@ -49,7 +49,7 @@ class XGAN(BaseModel):
         self.criterionGAN = WGANGPLoss(opt.lambda_gp, self.device).to(self.device)
         self.criterionDomain = GANLoss(use_lsgan=False).to(self.device)
         self.criterionL1 = nn.L1Loss().to(self.device)
-        self.criterionLatent = LatentSimiliarLoss().to(self.device)
+        self.criterionLatent = nn.MSELoss().to(self.device)
 
         if opt.isTrain:
             self.netD_A = XGAN_Discriminator(norm="none")
@@ -135,7 +135,6 @@ class XGAN(BaseModel):
 
         self.loss_D_A = self.criterionGAN.loss_D(self.netD_A(self.real_A), self.netD_A(fake_A), \
                                                     self.netD_A(interp_A), interp_A)
-
         self.loss_D_B = self.criterionGAN.loss_D(self.netD_B(self.real_B), self.netD_B(fake_B), \
                                                     self.netD_B(interp_B), interp_B)
 
