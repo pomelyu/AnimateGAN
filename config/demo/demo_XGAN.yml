@@ -28,7 +28,7 @@ epoch_count: 1
 name: xgan
 batch_size: 8
 lr: 0.0001
-beta1: 0
+beta1: 0.5
 lr_domain: 0.001
 beta1_domain: 0.9
 init_type: normal
@@ -39,5 +39,3 @@ reverse_gamma: 10
 lambda_dann: 2
 lambda_sem: 5
 lambda_rec: 10
-lambda_gp: 10
-every_g: 5
