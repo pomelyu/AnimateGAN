@@ -33,7 +33,7 @@ class XGAN(BaseModel):
 
         self.opt = opt
         self.niters = 0
-        self.loss_names = ["G_A", "D_A", "idt_A", "sem_A", "G_A", "D_B", "idt_B", "sem_B", "dann"]
+        self.loss_names = ["G_A", "D_A", "idt_A", "sem_A", "G_B", "D_B", "idt_B", "sem_B", "dann"]
         self.model_names = ["En_A", "En_B", "De_A", "De_B", "En_Shared", "De_Shared"]
         if opt.isTrain:
             self.model_names += ["D_A", "D_B", "LC"]
