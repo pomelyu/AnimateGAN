@@ -3,8 +3,8 @@ import math
 import torch
 from torch import nn
 from .building_blocks.blocks import DeConvBlock, ConvBlock
-from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverse
-from .building_blocks.loss import GANLoss
+from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverse, get_norm_layer
+from .building_blocks.loss import WGANGPLoss, GANLoss
 from .util import init_net
 from .base_model import BaseModel
 
@@ -16,6 +16,7 @@ class XGAN(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
+        parser.set_defaults(beta1=0)
         if is_train:
             parser.add_argument("--lr_domain", type=float, default=0.001)
             parser.add_argument("--beta1_domain", type=float, default=0.9)
@@ -23,12 +24,15 @@ class XGAN(BaseModel):
             parser.add_argument("--lambda_sem", type=float, default=1.0)
             parser.add_argument("--lambda_rec", type=float, default=1.0)
             parser.add_argument("--reverse_gamma", type=float, default=10.0)
+            parser.add_argument("--lambda_gp", type=float, default=10.0)
+            parser.add_argument("--every_g", type=float, default=5)
         return parser
 
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
 
         self.opt = opt
+        self.niters = 0
         self.loss_names = ["G_A", "D_A", "idt_A", "sem_A", "G_B", "D_B", "idt_B", "sem_B", "dann"]
         self.model_names = ["En_A", "En_B", "De_A", "De_B", "En_Shared", "De_Shared"]
         if opt.isTrain:
@@ -42,14 +46,14 @@ class XGAN(BaseModel):
         self.netEn_Shared = XGAN_SharedEncoder()
         self.netDe_Shared = XGAN_SharedDecoder()
 
-        self.criterionGAN = GANLoss(use_lsgan=False).to(self.device)
+        self.criterionGAN = WGANGPLoss(opt.lambda_gp, self.device).to(self.device)
         self.criterionDomain = GANLoss(use_lsgan=False).to(self.device)
         self.criterionL1 = nn.L1Loss().to(self.device)
         self.criterionLatent = nn.MSELoss().to(self.device)
 
         if opt.isTrain:
-            self.netD_A = XGAN_Discriminator()
-            self.netD_B = XGAN_Discriminator()
+            self.netD_A = XGAN_Discriminator(norm="none")
+            self.netD_B = XGAN_Discriminator(norm="none")
             self.netLC = XGAN_LatentClassifer()
             self.revert_gradient = GradientReverse(0)
             self.optimizer_G = torch.optim.Adam(itertools.chain(
@@ -96,8 +100,8 @@ class XGAN(BaseModel):
         self.sem_B = self.netEn_Shared(self.netEn_B(self.fake_B))
 
     def backward_G(self):
-        self.loss_G_A = self.criterionGAN(self.netD_A(self.fake_A), True)
-        self.loss_G_B = self.criterionGAN(self.netD_B(self.fake_B), True)
+        self.loss_G_A = self.criterionGAN.loss_G(self.netD_A(self.fake_A))
+        self.loss_G_B = self.criterionGAN.loss_G(self.netD_B(self.fake_B))
         self.loss_idt_A = self.criterionL1(self.real_A, self.rec_A) * self.opt.lambda_rec / self.real_A.numel()
         self.loss_idt_B = self.criterionL1(self.real_B, self.rec_B) * self.opt.lambda_rec / self.real_B.numel()
         self.loss_sem_A = self.criterionLatent(self.latent_A, self.sem_B) * self.opt.lambda_sem
@@ -126,10 +130,13 @@ class XGAN(BaseModel):
         fake_A = self.netDe_A(self.netDe_Shared(latent_B))
         fake_B = self.netDe_B(self.netDe_Shared(latent_A))
 
-        self.loss_D_A = (self.criterionGAN(self.netD_A(self.real_A), True) + \
-                            self.criterionGAN(self.netD_A(fake_A), False)) * 0.5
-        self.loss_D_B = (self.criterionGAN(self.netD_B(self.real_B), True) + \
-                            self.criterionGAN(self.netD_B(fake_B), False)) * 0.5
+        interp_A = self.criterionGAN.interp_real_fake(self.real_A, fake_A)
+        interp_B = self.criterionGAN.interp_real_fake(self.real_B, fake_B)
+
+        self.loss_D_A = self.criterionGAN.loss_D(self.netD_A(self.real_A), self.netD_A(fake_A), \
+                                                    self.netD_A(interp_A), interp_A)
+        self.loss_D_B = self.criterionGAN.loss_D(self.netD_B(self.real_B), self.netD_B(fake_B), \
+                                                    self.netD_B(interp_B), interp_B)
 
         total_loss = self.loss_D_A + self.loss_D_B
         total_loss.backward()
@@ -137,17 +144,22 @@ class XGAN(BaseModel):
     def optimize_parameters(self):
         self.forward()
 
-        self.optimizer_G.zero_grad()
-        self.backward_G()
-        self.optimizer_G.step()
+        if self.niters % self.opt.every_g == 0:
+            self.optimizer_G.zero_grad()
+            self.backward_G()
+            self.optimizer_G.step()
 
-        self.optimizer_Domain.zero_grad()
-        self.backward_Domain()
-        self.optimizer_Domain.step()
+            self.optimizer_Domain.zero_grad()
+            self.backward_Domain()
+            self.optimizer_Domain.step()
+
+            self.niters = 0
 
         self.optimizer_D.zero_grad()
         self.backward_D()
         self.optimizer_D.step()
+
+        self.niters += 1
 
     def update_epoch_params(self, epoch):
         super(XGAN, self).update_epoch_params(epoch)
@@ -228,17 +240,18 @@ class XGAN_DomainDecoder(nn.Module):
 
 
 class XGAN_Discriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, norm="batch"):
         super(XGAN_Discriminator, self).__init__()
+        norm_layer = get_norm_layer(norm)
         self.model = nn.Sequential(
             # (3, 64, 64) -> (16, 32, 32)
-            ConvBlock(3, 16),
+            ConvBlock(3, 16, norm_layer=norm_layer),
             # (16, 32, 32) -> (32, 16, 16)
-            ConvBlock(16, 32),
+            ConvBlock(16, 32, norm_layer=norm_layer),
             # (32, 16, 16) -> (32, 8, 8)
-            ConvBlock(32, 32),
+            ConvBlock(32, 32, norm_layer=norm_layer),
             # (32, 8, 8) -> (32, 4, 4)
-            ConvBlock(32, 32),
+            ConvBlock(32, 32, norm_layer=norm_layer),
             # (32, 4, 4) -> (512)
             FlattenLayer(),
             # (512) -> (1)
