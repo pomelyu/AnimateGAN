@@ -33,7 +33,7 @@ class XGAN(BaseModel):
 
         self.opt = opt
         self.niters = 0
-        self.loss_names = ["G_A", "D_A", "idt_A", "sem_A", "G_B", "D_B", "idt_B", "sem_B", "dann"]
+        self.loss_names = ["G_A", "D_A", "idt_A", "sem_A", "G_B", "D_B", "idt_B", "sem_B", "G_dann", "D_dann"]
         self.model_names = ["En_A", "En_B", "De_A", "De_B", "En_Shared", "De_Shared"]
         if opt.isTrain:
             self.model_names += ["D_A", "D_B", "LC"]
@@ -47,7 +47,6 @@ class XGAN(BaseModel):
         self.netDe_Shared = XGAN_SharedDecoder()
 
         self.criterionGAN = WGANGPLoss(opt.lambda_gp, self.device).to(self.device)
-        self.criterionDomain = GANLoss(use_lsgan=False).to(self.device)
         self.criterionL1 = nn.L1Loss().to(self.device)
         self.criterionLatent = nn.MSELoss().to(self.device)
 
@@ -67,17 +66,18 @@ class XGAN(BaseModel):
             self.optimizer_D = torch.optim.Adam(itertools.chain(
                 self.netD_A.parameters(),
                 self.netD_B.parameters(),
-            ), lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizer_Domain = torch.optim.Adam(itertools.chain(
-                self.netEn_A.parameters(),
-                self.netEn_B.parameters(),
-                self.netEn_Shared.parameters(),
                 self.netLC.parameters(),
-            ), lr=opt.lr_domain, betas=(opt.beta1_domain, 0.999))
+            ), lr=opt.lr, betas=(opt.beta1, 0.999))
+            # self.optimizer_Domain = torch.optim.Adam(itertools.chain(
+            #     self.netEn_A.parameters(),
+            #     self.netEn_B.parameters(),
+            #     self.netEn_Shared.parameters(),
+            #     self.netLC.parameters(),
+            # ), lr=opt.lr_domain, betas=(opt.beta1_domain, 0.999))
             self.optimizers = [
                 self.optimizer_G,
                 self.optimizer_D,
-                self.optimizer_Domain,
+                # self.optimizer_Domain,
             ]
 
         for name in self.model_names:
@@ -106,22 +106,24 @@ class XGAN(BaseModel):
         self.loss_idt_B = self.criterionL1(self.real_B, self.rec_B) * self.opt.lambda_rec / self.real_B.numel()
         self.loss_sem_A = self.criterionLatent(self.latent_A, self.sem_B) * self.opt.lambda_sem
         self.loss_sem_B = self.criterionLatent(self.latent_B, self.sem_A) * self.opt.lambda_sem
+        self.loss_G_dann = self.criterionGAN.loss_G(self.netLC(self.latent_B)) * self.opt.lambda_dann
 
-        total_loss = self.loss_G_A + self.loss_idt_A + self.loss_idt_B + self.loss_sem_A + self.loss_sem_B
+        total_loss = self.loss_G_A + self.loss_idt_A + self.loss_idt_B + \
+                        self.loss_sem_A + self.loss_sem_B + self.loss_G_dann
         total_loss.backward()
 
-    def backward_Domain(self):
-        latent_A = self.netEn_Shared(self.netEn_A(self.real_A))
-        latent_B = self.netEn_Shared(self.netEn_B(self.real_B))
+    # def backward_Domain(self):
+    #     latent_A = self.netEn_Shared(self.netEn_A(self.real_A))
+    #     latent_B = self.netEn_Shared(self.netEn_B(self.real_B))
 
-        latent_A = self.revert_gradient(latent_A)
-        latent_B = self.revert_gradient(latent_B)
+    #     latent_A = self.revert_gradient(latent_A)
+    #     latent_B = self.revert_gradient(latent_B)
 
-        self.loss_dann = self.criterionDomain(self.netLC(latent_A), True) + \
-                         self.criterionDomain(self.netLC(latent_B), False)
+    #     self.loss_dann = self.criterionDomain(self.netLC(latent_A), True) + \
+    #                      self.criterionDomain(self.netLC(latent_B), False)
 
-        self.loss_dann = self.loss_dann * self.opt.lambda_dann
-        self.loss_dann.backward()
+    #     self.loss_dann = self.loss_dann * self.opt.lambda_dann
+    #     self.loss_dann.backward()
 
     def backward_D(self):
         latent_A = self.netEn_Shared(self.netEn_A(self.real_A))
@@ -132,29 +134,34 @@ class XGAN(BaseModel):
 
         interp_A = self.criterionGAN.interp_real_fake(self.real_A, fake_A)
         interp_B = self.criterionGAN.interp_real_fake(self.real_B, fake_B)
+        interp_latent = self.criterionGAN.interp_real_fake(latent_A, latent_B)
 
         self.loss_D_A = self.criterionGAN.loss_D(self.netD_A(self.real_A), self.netD_A(fake_A), \
                                                     self.netD_A(interp_A), interp_A)
         self.loss_D_B = self.criterionGAN.loss_D(self.netD_B(self.real_B), self.netD_B(fake_B), \
                                                     self.netD_B(interp_B), interp_B)
+        self.loss_D_dann = self.criterionGAN.loss_D(self.netLC(latent_A), self.netLC(latent_B), \
+                                                    self.netLC(interp_latent), interp_latent) * self.opt.lambda_dann
 
-        total_loss = self.loss_D_A + self.loss_D_B
+        total_loss = self.loss_D_A + self.loss_D_B + self.loss_D_dann
         total_loss.backward()
 
     def optimize_parameters(self):
         self.forward()
 
         if self.niters % self.opt.every_g == 0:
+            self.set_requires_grad([self.netD_A, self.netD_B, self.netLC], False)
             self.optimizer_G.zero_grad()
             self.backward_G()
             self.optimizer_G.step()
 
-            self.optimizer_Domain.zero_grad()
-            self.backward_Domain()
-            self.optimizer_Domain.step()
+            # self.optimizer_Domain.zero_grad()
+            # self.backward_Domain()
+            # self.optimizer_Domain.step()
 
             self.niters = 0
 
+        self.set_requires_grad([self.netD_A, self.netD_B, self.netLC], True)
         self.optimizer_D.zero_grad()
         self.backward_D()
         self.optimizer_D.step()
@@ -267,10 +274,10 @@ class XGAN_LatentClassifer(nn.Module):
         super(XGAN_LatentClassifer, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(1024, 256),
-            nn.BatchNorm1d(256),
+            # nn.BatchNorm1d(256),
             nn.ReLU(True),
             nn.Linear(256, 64),
-            nn.BatchNorm1d(64),
+            # nn.BatchNorm1d(64),
             nn.ReLU(True),
             nn.Linear(64, 1),
         )
