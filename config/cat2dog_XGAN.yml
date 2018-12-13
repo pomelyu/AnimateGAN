@@ -1,0 +1,43 @@
+# Network
+model: XGAN
+ngf: 128
+ndf: 128
+
+# Dataset
+dataset_mode: image2image
+dataA: data/cat2dog/trainA
+dataB: data/cat2dog/trainB
+load_size: 64
+crop_size: 64
+serial_batches: False
+
+# Train process
+checkpoints_dir: ./checkpoints/cat2dog
+num_threads: 0
+gpu_ids: 0
+print_freq: 100
+display_freq: 500
+save_epoch_freq: 100
+niter: 1000
+niter_decay: 1000 
+continue_train: True
+epoch: 1000
+epoch_count: 1001
+
+# Major hyper parameters
+name: xgan_lr2e-5
+batch_size: 8
+lr: 0.00002
+beta1: 0
+lr_domain: 0.0001
+beta1_domain: 0.9
+init_type: normal
+init_gain: 0.02
+noise_level: 0
+flip_prob: 0
+reverse_gamma: 10
+lambda_dann: 1
+lambda_sem: 10
+lambda_rec: 10
+# lambda_gp: 10
+# every_g: 5
