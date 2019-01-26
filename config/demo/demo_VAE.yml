@@ -4,7 +4,7 @@ ngf: 32
 ndf: 32
 
 # Dataset
-dataset_mode: latent2image
+dataset_mode: image
 dataroot: data/demo/faces
 load_size: 64
 crop_size: 64
