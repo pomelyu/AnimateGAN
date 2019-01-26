@@ -16,13 +16,13 @@ checkpoints_dir: ./checkpoints/cat2dog
 num_threads: 0
 gpu_ids: 0
 print_freq: 100
-display_freq: 500
-save_epoch_freq: 100
-niter: 1000
-niter_decay: 1000 
+display_freq: 1000
+save_epoch_freq: 200
+niter: 4000
+niter_decay: 4000 
 continue_train: True
-epoch: 1000
-epoch_count: 1001
+epoch: 7400
+epoch_count: 7501
 
 # Major hyper parameters
 name: xgan_lr2e-5
@@ -39,5 +39,5 @@ reverse_gamma: 10
 lambda_dann: 1
 lambda_sem: 10
 lambda_rec: 10
-# lambda_gp: 10
-# every_g: 5
+lambda_gp: 10
+every_g: 5

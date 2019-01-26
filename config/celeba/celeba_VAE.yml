@@ -1,0 +1,34 @@
+# Network
+model: VAE
+ngf: 32
+ndf: 32
+
+# Dataset
+dataset_mode: latent2image
+dataroot: ../../DataBase/CelebA/img_align_celeba
+load_size: 64
+crop_size: 64
+latent_size: 32
+serial_batches: False
+
+# Train process
+checkpoints_dir: ./checkpoints/celeba_vae
+num_threads: 0
+gpu_ids: 0
+print_freq: 200
+display_freq: 500
+save_epoch_freq: 5
+niter: 30
+niter_decay: 0
+continue_train: False
+epoch: 0
+epoch_count: 1
+
+# Major hyper parameters
+name: lr1e-4_b64
+batch_size: 64
+lr: 0.0001
+beta1: 0.9
+lambda_kl: 10
+init_type: kaiming
+init_gain: 0.02
