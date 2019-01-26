@@ -30,7 +30,8 @@ class BaseModel():
         if opt.isTrain:
             self.noise_dist = None
             self.noise_level = opt.noise_level
-            self.set_noise_volume(1)
+            self.update_epoch(0)
+            self.update_niter(0)
 
     def set_input(self, input):
         self.input = input
@@ -44,7 +45,7 @@ class BaseModel():
             self.schedulers = [util.get_scheduler(optimizer, opt) for optimizer in self.optimizers]
 
         if not self.isTrain or opt.continue_train:
-            self.load_networks(opt.epoch)
+            self.load_networks(opt.load_epoch)
         self.print_networks(opt.verbose)
 
     # make models eval mode during test time
@@ -167,7 +168,11 @@ class BaseModel():
                     param.requires_grad = requires_grad
 
 
-    def set_noise_volume(self, noise_volume):
+    def update_niter(self, niter):
+        pass
+
+    def update_epoch(self, epoch):
+        noise_volume = 1 - epoch / (self.opt.epoch + self.opt.epoch_decay)
         self.noise_dist = normal.Normal(0, noise_volume * self.noise_level)
 
     def get_noise_tensor_as(self, other):

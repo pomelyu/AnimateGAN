@@ -20,10 +20,10 @@ checkpoints_dir: ./checkpoints/demo
 print_freq: 10
 display_freq: 10
 save_epoch_freq: 1
-niter: 10
-niter_decay: 10 
+epoch: 10
+epoch_decay: 10 
 continue_train: False
-epoch: 0
+load_epoch: 0
 epoch_count: 1
 
 # Major hyper parameters
@@ -31,7 +31,6 @@ name: dcgan
 batch_size: 8
 lr: 0.0002
 beta1: 0.5
-
 
 # Minor hyper parameters
 init_type: normal

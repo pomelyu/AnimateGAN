@@ -25,7 +25,9 @@ def train():
     visualizer = Visualizer(opt)
 
     n_iter = (opt.epoch_count - 1) * dataset_size
-    total_epoch = opt.niter + opt.niter_decay + 1
+    total_epoch = opt.load_epoch + opt.epoch_decay + 1
+    model.update_epoch(opt.load_epoch)
+    model.update_niter(n_iter)
 
     for epoch in range(opt.epoch_count, total_epoch):
         for data in tqdm(dataset, total=dataset_size, ascii=True):
@@ -46,6 +48,7 @@ def train():
             if n_iter % opt.save_lastest_freq == 0:
                 model.save_networks('latest')
 
+            model.update_niter(n_iter)
 
         log = get_state_message(epoch, n_iter, model.get_current_losses())
         visualizer.add_log(log)
@@ -54,7 +57,7 @@ def train():
             model.save_networks(epoch)
 
         model.update_learning_rate()
-        model.set_noise_volume(1 - epoch / total_epoch)
+        model.update_epoch(epoch)
 
 
 if __name__ == '__main__':

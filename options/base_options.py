@@ -26,7 +26,7 @@ class BaseOptions():
 
         # Process
         parser.add_argument("--name", type=str, default="experiment_name", help="name of the experiment. It decides where to store samples and models")
-        parser.add_argument("--epoch", type=str, default="latest", help="which epoch to load? set to latest to use latest cached model")
+        parser.add_argument("--load_epoch", type=str, default="latest", help="which epoch to load? set to latest to use latest cached model")
         parser.add_argument("--checkpoints_dir", type=str, default="./checkpoints", help="models are saved here")
         parser.add_argument("--verbose", action="store_true", help="if specified, print more debugging information")
         parser.add_argument('--suffix', default='', type=str, help='customized suffix: opt.name = opt.name + suffix: e.g., {model}_{netG}_size{loadSize}')
