@@ -72,5 +72,5 @@ class LatentSimiliarLoss(nn.Module):
 class KLLoss(nn.Module):
     def __call__(self, mu, logvar):
         # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        n = mu.numel()
-        return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / n
+        klds = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
+        return klds.sum(1).mean(0)

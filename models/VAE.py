@@ -14,6 +14,12 @@ class VAE(BaseModel):
         return "VAE"
 
     @staticmethod
+    def reparameterize(mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps.mul(std) + mu
+
+    @staticmethod
     def modify_commandline_options(parser, is_train=True):
         parser.add_argument("--ngf", type=int, default=32, help="# of gen filters in first conv layer")
         parser.add_argument("--latent_size", type=int, default=32)
@@ -37,7 +43,7 @@ class VAE(BaseModel):
         self.netDecoder = init_net(self.netDecoder, opt.init_type, opt.init_gain, opt.gpu_ids)
 
         if self.isTrain:
-            self.criterionIdt = nn.MSELoss()
+            self.criterionIdt = nn.MSELoss(reduction="sum")
             self.criterionKL = KLLoss()
             params = itertools.chain(self.netEncoder.parameters(), self.netDecoder.parameters())
             self.optimizer = torch.optim.Adam(params, lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -48,17 +54,16 @@ class VAE(BaseModel):
 
     def forward(self):
         self.mu, self.logvar = self.netEncoder(self.real)
-        z = self.reparameterize()
+        z = self.reparameterize(self.mu, self.logvar)
         self.fake = self.netDecoder(z)
 
-    def reparameterize(self):
-        std = torch.exp(0.5 * self.logvar)
-        eps = torch.randn_like(std)
-        return eps.mul(std) + self.mu
-
     def backward(self):
+        # loss_KL is calculated on z, (batch_size, latent_size)
+        # loss_Idt is calculated on real/fake, (batch_size, depth, width, height)
+        # Hence they should be average by batch_size, not by the number of elements
+        num_els = self.real.shape[0]
         self.loss_KL = self.criterionKL(self.mu, self.logvar) * self.opt.lambda_kl
-        self.loss_Idt = self.criterionIdt(self.fake, self.real)
+        self.loss_Idt = self.criterionIdt(self.fake, self.real) / num_els
         self.loss_All = self.loss_Idt + self.loss_KL
         self.loss_All.backward()
 
