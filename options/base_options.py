@@ -2,6 +2,7 @@ from pathlib import Path
 import argparse
 import yaml
 import torch
+import arrow
 
 import models
 import datasets
@@ -106,7 +107,8 @@ class BaseOptions():
         if opt.isTrain:
             expr_dir = Path(opt.checkpoints_dir) / opt.name
             util.mkdirs(expr_dir)
-            file_name = expr_dir / "opt.txt"
+            local = arrow.utcnow().to("local")
+            file_name = expr_dir / "opt {}.txt".format(local.format("[YYYY_MMDD] HH'mm'ss"))
             with file_name.open(mode="w") as opt_file:
                 opt_file.write(message)
                 opt_file.write("\n")
