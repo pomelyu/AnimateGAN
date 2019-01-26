@@ -1,6 +1,6 @@
 import torch
 from .base_model import BaseModel
-from .building_blocks.loss import WGANGPLoss
+from .components.loss import WGANGPLoss
 from .util import init_net
 from .DCGAN import DCGAN_G, DCGAN_D
 

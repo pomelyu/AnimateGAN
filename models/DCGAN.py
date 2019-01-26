@@ -2,9 +2,9 @@ import random
 import torch
 from torch import nn
 from .base_model import BaseModel
-from .building_blocks.loss import GANLoss
-from .building_blocks.layers import get_norm_layer, DeConvLayer
-from .building_blocks.blocks import DeConvBlock, ConvBlock
+from .components.loss import GANLoss
+from .components.layers import get_norm_layer, DeConvLayer
+from .components.blocks import DeConvBlock, ConvBlock
 from .util import init_net
 
 # pylint: disable=attribute-defined-outside-init

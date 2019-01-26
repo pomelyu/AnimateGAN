@@ -3,7 +3,7 @@ from torch import nn
 from .base_model import BaseModel
 from .VAE import Encoder, Decoder, KLLoss
 from .DCGAN import DCGAN_D
-from .building_blocks.loss import WGANGPLoss
+from .components.loss import WGANGPLoss
 from .util import init_net
 
 # pylint: disable=attribute-defined-outside-init

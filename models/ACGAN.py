@@ -1,8 +1,8 @@
 import torch
 from torch import nn
-from .building_blocks.loss import GANLoss
-from .building_blocks.layers import get_norm_layer
-from .building_blocks.blocks import ConvBlock
+from .components.loss import GANLoss
+from .components.layers import get_norm_layer
+from .components.blocks import ConvBlock
 from .util import init_net
 from .base_model import BaseModel
 from .DCGAN import DCGAN_G

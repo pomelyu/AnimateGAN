@@ -1,9 +1,9 @@
 import itertools
 import torch
 from torch import nn
-from .building_blocks.blocks import DeConvBlock, ConvBlock
-from .building_blocks.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverseLayer
-from .building_blocks.loss import GANLoss, LatentSimiliarLoss
+from .components.blocks import DeConvBlock, ConvBlock
+from .components.layers import DeConvLayer, FlattenLayer, ReshapeLayer, L2NormalizeLayer, GradientReverseLayer
+from .components.loss import GANLoss, LatentSimiliarLoss
 from .util import init_net
 from .base_model import BaseModel
 

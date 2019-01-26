@@ -1,5 +1,5 @@
 import torch
-from .building_blocks.loss import WGANGPLoss
+from .components.loss import WGANGPLoss
 from .util import init_net
 from .ACGAN import ACGAN, ACGAN_D
 
