@@ -12,14 +12,13 @@ class WGANGP(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
-        parser.set_defaults(ngf=128)
-        parser.set_defaults(ndf=128)
-        parser.set_defaults(beta1=0)
-
-        parser.add_argument("--lambda_gp", type=float, default=10.0)
+        parser.add_argument("--ngf", type=int, default=128, help="# of gen filters in first conv layer")
         if is_train:
+            parser.add_argument("--ndf", type=int, default=128, help="# of discrim filters in first conv layer")
+            parser.add_argument("--lambda_gp", type=float, default=10.0)
             parser.add_argument("--every_g", type=int, default=5)
             parser.add_argument("--every_d", type=int, default=1)
+            parser.set_defaults(beta1=0)
 
         return parser
 

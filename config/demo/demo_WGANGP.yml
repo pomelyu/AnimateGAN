@@ -11,10 +11,12 @@ crop_size: 64
 latent_size: 100
 serial_batches: False
 
-# Train process
-checkpoints_dir: ./checkpoints/demo
+# Environment
 num_threads: 0
 gpu_ids: -1
+
+# Train process
+checkpoints_dir: ./checkpoints/demo
 print_freq: 10
 display_freq: 10
 save_epoch_freq: 1
@@ -29,10 +31,12 @@ name: dcgan_gp
 batch_size: 8
 lr: 0.0001
 beta1: 0
+lambda_gp: 10
+every_g: 5
+every_d: 1
+
+# Minor hyper parameters
 init_type: normal
 init_gain: 0.02
 noise_level: 0
 flip_prob: 0
-lambda_gp: 10
-every_g: 5
-every_d: 1

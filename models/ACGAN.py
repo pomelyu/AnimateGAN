@@ -15,11 +15,11 @@ class ACGAN(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
-        parser.set_defaults(ngf=128)
-        parser.set_defaults(ndf=128)
+        parser.add_argument("--ngf", type=int, default=128, help="# of gen filters in first conv layer")
+        parser.add_argument("--n_hair_color", type=int, default=12)
+        parser.add_argument("--n_eyes_color", type=int, default=10)
         if is_train:
-            parser.add_argument("--n_hair_color", type=int, default=12)
-            parser.add_argument("--n_eyes_color", type=int, default=10)
+            parser.add_argument("--ndf", type=int, default=128, help="# of discrim filters in first conv layer")
             parser.add_argument("--lambda_class", type=float, default=5.0)
         return parser
 

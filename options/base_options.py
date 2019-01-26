@@ -23,28 +23,30 @@ class BaseOptions():
 
     def initialize(self, parser):
         parser.add_argument("--config", type=str, default="", help="path to yaml config file")
-        parser.add_argument("--load_size", type=int, default=64, help="scale images to this size")
-        parser.add_argument("--crop_size", type=int, default=64, help="then crop to this size")
-        parser.add_argument("--batch_size", type=int, default=8, help="input batch size")
-        parser.add_argument("--dataset_mode", type=str, default="anime", help="")
-        parser.add_argument("--num_threads", default=0, type=int, help="# threads for loading data")
-        parser.add_argument("--serial_batches", action="store_true", help="if true, takes images in order to make batches, otherwise takes them randomly")
 
-        parser.add_argument("--model", type=str, default="dc_gan", help="")
-        parser.add_argument("--ngf", type=int, default=64, help="# of gen filters in first conv layer")
-        parser.add_argument("--ndf", type=int, default=64, help="# of discrim filters in first conv layer")
-        parser.add_argument("--ngl", type=int, default=5, help="# of layers of generator")
-        parser.add_argument("--ndl", type=int, default=5, help="# of layers of descriminator")
-        parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]')
-        parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
-
-        parser.add_argument("--gpu_ids", type=str, default="0", help="gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU")
+        # Process
         parser.add_argument("--name", type=str, default="experiment_name", help="name of the experiment. It decides where to store samples and models")
         parser.add_argument("--epoch", type=str, default="latest", help="which epoch to load? set to latest to use latest cached model")
         parser.add_argument("--checkpoints_dir", type=str, default="./checkpoints", help="models are saved here")
-
         parser.add_argument("--verbose", action="store_true", help="if specified, print more debugging information")
         parser.add_argument('--suffix', default='', type=str, help='customized suffix: opt.name = opt.name + suffix: e.g., {model}_{netG}_size{loadSize}')
+
+        # Environment configure
+        parser.add_argument("--gpu_ids", type=str, default="0", help="gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU")
+        parser.add_argument("--num_threads", default=0, type=int, help="# threads for loading data")
+
+        # Dataset configure
+        parser.add_argument("--dataset_mode", type=str, default="anime", help="")
+        parser.add_argument("--batch_size", type=int, default=8, help="input batch size")
+        parser.add_argument("--load_size", type=int, default=64, help="scale images to this size")
+        parser.add_argument("--crop_size", type=int, default=64, help="then crop to this size")
+        parser.add_argument("--serial_batches", action="store_true", help="if true, takes images in order to make batches, otherwise takes them randomly")
+
+        # Network configure
+        parser.add_argument("--model", type=str, default="dc_gan", help="")
+        parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]')
+        parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
+
         self.initialized = True
         return parser
 

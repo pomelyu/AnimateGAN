@@ -14,11 +14,11 @@ class VAEGAN(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
-        parser.set_defaults(ngf=32)
-        parser.set_defaults(latent_size=256)
+        parser.add_argument("--ngf", type=int, default=32, help="# of gen filters in first conv layer")
+        parser.add_argument("--latent_size", type=int, default=32)
         parser.set_defaults(beta1=0)
         if is_train:
-            # weight calculated by observered variance
+            parser.add_argument("--ndf", type=int, default=32, help="# of discrim filters in first conv layer")
             parser.add_argument("--lambda_kl", type=float, default=1.0)
             parser.add_argument("--lambda_idt", type=float, default=1.0)
             parser.add_argument("--lambda_gp", type=float, default=10.0)

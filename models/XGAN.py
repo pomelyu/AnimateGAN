@@ -15,9 +15,10 @@ class XGAN(BaseModel):
 
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
-        parser.add_argument("--lambda_dann", type=float, default=1.0)
-        parser.add_argument("--lambda_sem", type=float, default=1.0)
-        parser.add_argument("--lambda_rec", type=float, default=1.0)
+        if is_train:
+            parser.add_argument("--lambda_dann", type=float, default=1.0)
+            parser.add_argument("--lambda_sem", type=float, default=1.0)
+            parser.add_argument("--lambda_rec", type=float, default=1.0)
         return parser
 
     def initialize(self, opt):
