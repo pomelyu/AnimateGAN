@@ -27,13 +27,16 @@ class VAE(BaseModel):
         if is_train:
             parser.add_argument("--ndf", type=int, default=32, help="# of discrim filters in first conv layer")
             parser.add_argument("--lambda_kl", type=float, default=1.0)
+            parser.add_argument("--c_min", type=float, default=0)
+            parser.add_argument("--c_max", type=float, default=0)
+            parser.add_argument("--c_stop_iter", type=int, default=100000)
         return parser
 
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
 
         self.opt = opt
-        self.loss_names = ["KL", "Idt", "All"]
+        self.loss_names = ["KL", "Idt", "KL_mean"]
         self.model_names = ["Encoder", "Decoder"]
         self.visual_names = ["real", "fake"]
 
@@ -44,6 +47,7 @@ class VAE(BaseModel):
         self.netDecoder = init_net(self.netDecoder, opt.init_type, opt.init_gain, opt.gpu_ids)
 
         if self.isTrain:
+            self.c = 0
             self.criterionIdt = nn.MSELoss(reduction="sum")
             self.criterionKL = KLLoss()
             params = itertools.chain(self.netEncoder.parameters(), self.netDecoder.parameters())
@@ -64,10 +68,12 @@ class VAE(BaseModel):
         # loss_Idt is calculated on real/fake, (batch_size, depth, width, height)
         # Hence they should be average by batch_size, not by the number of elements
         num_els = self.real.shape[0]
-        self.loss_KL = self.criterionKL(self.mu, self.logvar) * self.opt.lambda_kl
+        loss_KL = self.criterionKL(self.mu, self.logvar)
+        self.loss_KL = (loss_KL - self.c).abs() * self.opt.lambda_kl
         self.loss_Idt = self.criterionIdt(self.fake, self.real) / num_els
-        self.loss_All = self.loss_Idt + self.loss_KL
-        self.loss_All.backward()
+        self.loss_KL_mean = self.loss_KL / self.mu.shape[1]
+        loss = self.loss_Idt + self.loss_KL
+        loss.backward()
 
     def optimize_parameters(self):
         self.forward()
@@ -75,6 +81,10 @@ class VAE(BaseModel):
         self.optimizer.zero_grad()
         self.backward()
         self.optimizer.step()
+
+    def update_niter(self, niter):
+        opt = self.opt
+        self.c = np.interp(niter * opt.batch_size, [0, opt.c_stop_iter], [opt.c_min, opt.c_max])
 
     @torch.no_grad()
     def get_test_output(self):
