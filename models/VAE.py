@@ -1,6 +1,7 @@
 import itertools
 import torch
 from torch import nn
+import numpy as np
 from .base_model import BaseModel
 from .components.blocks import ConvBlock, DeConvBlock
 from .components.layers import get_norm_layer, FlattenLayer, ReshapeLayer, DeConvLayer
@@ -51,6 +52,7 @@ class VAE(BaseModel):
 
     def set_input(self, input_data): # pylint: disable=arguments-differ
         self.real = input_data["image"].to(self.device)
+        self.image_paths = input_data["path"]
 
     def forward(self):
         self.mu, self.logvar = self.netEncoder(self.real)
@@ -73,6 +75,35 @@ class VAE(BaseModel):
         self.optimizer.zero_grad()
         self.backward()
         self.optimizer.step()
+
+    @torch.no_grad()
+    def get_test_output(self):
+        # one sample
+        assert self.mu.shape[0] == 1
+
+        z = self.mu
+        sigma = self.logvar.exp().sqrt()
+
+        res = []
+        for dim in range(z.shape[-1]):
+            test_batch = []
+            for i in range(-12, 12):
+                one_sample = z.clone()
+                one_sample[:, dim] = one_sample[:, dim] + sigma[:, dim] * i * 3
+                test_batch.append(one_sample)
+            test_batch = torch.cat(test_batch, dim=0)
+            image_batch = self.netDecoder(test_batch).cpu().numpy()
+
+            # (-1, 1) -> (0, 1)
+            image_batch = ((image_batch * 0.5 + 0.5) * 255).astype(np.uint8)
+            # (batch, d, h, w) -> (batch, h, w, d)
+            image_batch = np.moveaxis(image_batch, 1, -1)
+            # (batch, h, w, d) -> (batch * h, w, d)
+            image_batch = np.concatenate(image_batch, axis=0)
+            res.append(image_batch)
+
+        # (latent, batch * h ,w, d) -> (batch * h, latent * w, d)
+        return np.concatenate(res, axis=1)
 
 
 class Encoder(nn.Module):

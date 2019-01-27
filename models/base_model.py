@@ -96,6 +96,10 @@ class BaseModel():
                 errors_ret[name] = float(getattr(self, 'loss_' + name))
         return errors_ret
 
+    @torch.no_grad()
+    def get_test_output(self):
+        pass
+
     # save models to the disk
     def save_networks(self, epoch):
         for name in self.model_names:

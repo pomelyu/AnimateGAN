@@ -7,10 +7,11 @@ dependencies:
 - tensorflow=1.11.0
 - torchvision=0.2.1
 - pytest=3.9.3
-- python=3.6
+- python=3.6.8
 - pytorch=0.4
 - pip:
   - arrow==0.12.1
+  - imageio==2.4.1
   - opencv-python-headless==3.4.4.19
   - tensorboardX==1.4
   - tqdm==4.28.1
